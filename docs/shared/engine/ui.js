@@ -9,6 +9,7 @@
   var MH = window.MH, P = MH.progress;
   var root, STAGE, HOME = '../';
   var S = null;                                   /* 문제 화면의 상태(화면에만 있는 것) */
+  var AUTO_NEXT = 700, autoTimer = 0;             /* 맞히면 이만큼(밀리초) 초록색으로 보여 준 뒤 다음 문제로 넘어간다 */
 
   var ICON = {
     grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
@@ -135,6 +136,12 @@
     if (out.goalNow) h += msg('star', '오늘 목표 ' + P.s.settings.goal + '문제를 채웠어요', '<p>여기서 멈춰도 좋아요. 더 풀어도 괜찮아요.</p>');
     return h;
   }
+  /** 맞혔으면 잠깐 보여 주고 다음 문제로. 읽어야 할 알림(단원 통과 · 목표 달성 · 약분 안내)이 있으면 넘기지 않는다. */
+  function autoNext() {
+    clearTimeout(autoTimer);
+    var mine = S;
+    autoTimer = setTimeout(function () { if (S === mine && S.phase === 'done') next(); }, AUTO_NEXT);
+  }
   function answerTex() { return MH.kinds[S.def.answer.kind].tex(S.problem.answer); }
   function suffix() { return S.def.answer.suffix ? S.def.answer.suffix(S.problem.v, S.problem.ctx) : ''; }
 
@@ -149,7 +156,9 @@
       S.testResult = P.answerTest(right, j.mistake ? j.mistake.id : null, t); P.save();
       S.phase = 'done'; S.final = S.input; S.boxClass = right ? 'good' : 'bad';
       S.msgs = [right ? msg('good', '맞았어요') : msg('bad', '틀렸어요', mine + explain + '<p>정답은 ' + tex(answerTex()) + esc(suffix()) + ' 이에요.</p>')];
-      return drawSolve(true);
+      drawSolve(true);
+      if (right) autoNext();
+      return;
     }
     if (S.phase === 'answer') {
       var out = P.record(S.task, { correct: right, hinted: S.hints > 0, mistake: j.mistake ? j.mistake.id : null }, t);
@@ -160,6 +169,9 @@
           + (S.task.mode === 'review' ? '<p>' + reviewNote() + '</p>' : '');
         S.phase = 'done'; S.final = S.input; S.boxClass = 'good';
         S.msgs = [msg('good', '맞았어요', body), extras(out)];
+        drawSolve(true);
+        if (!out.passedNow && !out.goalNow && !j.note) autoNext();
+        return;
       } else {
         S.phase = 'retry'; S.input = ''; S.ask = false;
         S.msgs = [msg('bad', '다시 볼까요?', mine + explain + '<p>한 번 더 풀어 볼 수 있어요. 이 유형은 내일 복습에 다시 나와요.</p>'), extras(out)];
@@ -171,6 +183,7 @@
     if (right) S.msgs = [msg('good', '이번엔 맞았어요', '<p>방금 고친 부분을 기억해 두세요.</p>')];
     else { S.msgs = [msg('bad', '정답은 ' + tex(answerTex()) + esc(suffix()) + ' 이에요', mine + explain)]; S.showSteps = true; }
     drawSolve(true);
+    if (right) autoNext();
   }
   function reviewNote() {
     var r = P.s.reviews.filter(function (x) { return x.type === S.task.type; })[0];
@@ -185,6 +198,7 @@
   }
   /** 풀이 보기. 답을 내기 전이면 오답으로 기록된다는 것을 한 번 묻는다. */
   function showSolution(confirmed) {
+    clearTimeout(autoTimer);
     if (S.phase === 'answer' && !confirmed) { S.ask = true; return drawSolve(false); }
     S.ask = false;
     if (S.phase === 'answer') {
@@ -199,6 +213,7 @@
     drawSolve(true);
   }
   function next() {
+    clearTimeout(autoTimer);
     if (S.test) {
       if (S.testResult) return renderTestResult(S.testResult);
       return openTest(S.task.unit);
@@ -291,7 +306,7 @@
   function route() {
     MH.apply();
     var m = /^#(unit|study|test)\/([A-Za-z0-9]+)$/.exec(location.hash), u = m && MH.MAP.unit(m[2]);
-    S = null;
+    S = null; clearTimeout(autoTimer);
     window.scrollTo(0, 0);
     if (!u || u.stage !== STAGE) return renderHome();
     if (m[1] === 'unit') return renderUnit(u.id);
