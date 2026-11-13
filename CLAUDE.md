@@ -32,3 +32,15 @@
 - 새 유형을 만들 때마다 문제 생성기와 정답 판정의 테스트를 만들고 실행한다. 생성기로 문제 1,000개를 만들어 답이 모두 맞는지 자동 검증한다.
 - 기능 하나가 끝나면 git 커밋한다.
 - 모든 설명과 답변은 한국어로 한다.
+
+## 프로젝트 구조
+- `docs/` 가 사이트 전체다(GitHub Pages: main 브랜치의 /docs). 빌드 단계 없는 정적 HTML/JS.
+  - `docs/index.html` 허브 화면. 영역 목록은 이 파일의 `AREAS` — 영역 앱을 만들면 `ready: true` 로 바꾼다.
+  - `docs/<영역 key>/` 영역별 앱(basic, middle, common, algebra, calculus, stats).
+  - `docs/shared/hub.js` 공용(`window.MH`): 테마, 허브에 보여 줄 요약(`MH.summary`), 서비스워커 등록.
+  - `docs/sw.js` 오프라인용 서비스워커. `docs/` 안의 파일을 고쳤으면 커밋 전에 `python3 tools/build_sw.py` 를 실행한다.
+- localStorage 키는 모두 `mathhub.` 으로 시작한다.
+- `tools/` 개발용 스크립트(사이트에 올라가지 않음). 아이콘: `python3 tools/build_icons.py`
+- 이 컴퓨터에는 Node 가 없다. JS 테스트는 macOS 내장 `jsc` 로 실행한다:
+  `/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc`
+- 화면 확인: `cd docs && python3 -m http.server` 후 브라우저에서 열기.

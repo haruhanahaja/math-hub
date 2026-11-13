@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F8FB">
+<title>Math Hub — 기초 계산부터 수능 수학까지</title>
+<meta name="description" content="초등 계산부터 수능 수학까지, 하루 10~20분씩 이어 가는 수학 학습 앱">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%23111B2B'/%3E%3Ccircle cx='128' cy='68' r='18' fill='%235E8BFF'/%3E%3Crect x='52' y='114' width='152' height='28' rx='14' fill='%23EEF1F6'/%3E%3Ccircle cx='128' cy='188' r='18' fill='%234FC891'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Math Hub">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<script>
+/* 첫 페인트 전에 테마 적용 */
+(function () { try { var t = localStorage.getItem('mathhub.theme') || 'auto'; if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; document.documentElement.dataset.theme = t; } catch (e) {} })();
+</script>
+<style>
+/* Math Hub 허브 화면 — 무채색 바탕에 강조색(파랑) 하나만 쓴다. */
+:root {
+  --bg: #F6F8FB; --surface: #FFFFFF; --ink: #111B2B; --ink-2: #465166; --muted: #8791A1; --line: #E4E8EF; --track: #E3E7EE;
+  --brand: #2752C4; --soft: #E7EDFB;
+  --shadow: 0 0 0 1px rgba(20, 30, 50, .06), 0 1px 2px rgba(20, 20, 30, .04), 0 16px 32px -20px rgba(20, 20, 30, .18);
+  --sans: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0C111B; --surface: #141B28; --ink: #EEF1F6; --ink-2: #B4BDCC; --muted: #77839A; --line: #243044; --track: #212B3C;
+  --brand: #9DB8FF; --soft: #1B2747;
+  --shadow: 0 0 0 1px rgba(255, 255, 255, .06), 0 16px 32px -20px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); letter-spacing: -.01em; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; touch-action: manipulation; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 10px; }
+svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.page { max-width: 720px; margin: 0 auto; padding: calc(18px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 750; font-size: 17px; letter-spacing: -.03em; }
+.logo i { width: 34px; height: 34px; border-radius: 10px; background: #111B2B; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3.5px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+.logo i b { display: block; width: 5px; height: 5px; border-radius: 50%; }
+.logo i b:nth-child(2) { width: 20px; height: 4px; border-radius: 2px; }
+.theme { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px 0 10px; border-radius: 999px; color: var(--ink-2); font-size: 13px; font-weight: 600; box-shadow: inset 0 0 0 1px var(--line); background: var(--surface); }
+.theme .ic { width: 17px; height: 17px; }
+
+.hello { margin-top: 26px; }
+.hello small { display: block; font-size: 12px; font-weight: 650; letter-spacing: .12em; color: var(--muted); }
+.hello h1 { font-size: clamp(24px, 6.4vw, 32px); line-height: 1.25; letter-spacing: -.035em; margin-top: 6px; word-break: keep-all; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border-radius: 999px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-size: 13px; font-weight: 650; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pill .ic { width: 16px; height: 16px; color: var(--muted); }
+
+.next { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--soft); color: var(--ink); }
+.next > .ic { color: var(--brand); width: 22px; height: 22px; }
+.next .txt { flex: 1; min-width: 0; }
+.next .txt b, .next .txt small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.next .txt b { font-size: 15px; font-weight: 700; letter-spacing: -.02em; } .next .txt small { font-size: 13px; color: var(--ink-2); }
+.next .go { color: var(--brand); display: flex; }
+
+.sec { margin-top: 26px; font-size: 12px; font-weight: 650; letter-spacing: .12em; color: var(--muted); }
+.areas { display: grid; gap: 10px; margin-top: 10px; }
+.area { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); transition: transform .15s; }
+a.area:active { transform: scale(.985); }
+.area .no { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--soft); color: var(--brand); font-weight: 750; font-size: 16px; font-variant-numeric: tabular-nums; }
+.area .txt { flex: 1; min-width: 0; }
+.area .txt small { display: block; font-size: 11px; font-weight: 650; letter-spacing: .08em; color: var(--muted); }
+.area .txt b { display: block; font-size: 16.5px; font-weight: 750; letter-spacing: -.03em; line-height: 1.3; }
+.area .txt p { font-size: 13px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.area .bar { height: 5px; border-radius: 999px; background: var(--track); overflow: hidden; margin-top: 8px; }
+.area .bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
+.area .side { flex: none; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 650; color: var(--muted); font-variant-numeric: tabular-nums; }
+.area .side .ic { color: var(--brand); }
+.area.soon { box-shadow: inset 0 0 0 1px var(--line); background: transparent; }
+.area.soon .no { background: var(--track); color: var(--muted); }
+.area.soon .txt b { color: var(--ink-2); }
+.foot { margin-top: 22px; text-align: center; font-size: 12px; color: var(--muted); }
+
+@media (min-width: 860px) { .page { padding-top: 40px; } a.area:hover { transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .area { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+<noscript><p style="padding:24px">이 앱은 JavaScript가 필요합니다.</p></noscript>
+<script src="shared/hub.js" data-root="./"></script>
+<script>
+(function () {
+  'use strict';
+  var MH = window.MH;
+  var ICON = {
+    auto: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 3v18M12 7l5.5 1.5M12 12h9M12 17l5.5-1.5',
+    light: 'M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z',
+    dark: 'M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z',
+    flame: 'M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-1.5.5-2.5 1-3.5C6.5 9.5 5 12 5 14.5a7 7 0 0 0 14 0C19 9 14.5 6.5 12 3z',
+    review: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
+    pencil: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+    arrow: 'M5 12h14M13 6l6 6-6 6',
+    clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7.5V12l3 2'
+  };
+  var ic = function (n) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="' + ICON[n] + '"/></svg>'; };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var num = function (n) { return Number(n).toLocaleString('ko-KR'); };
+  var MODE_LABEL = { auto: '시스템', light: '라이트', dark: '다크' };
+
+  /* 영역 목록(아래에서 위로 올라가는 순서). ready: 앱이 만들어진 영역만 true — 폴더 이름은 key 와 같다. */
+  var AREAS = [
+    { key: 'basic', level: '초등', name: '기초 계산', desc: '자연수 · 분수 · 소수의 사칙연산', ready: false },
+    { key: 'middle', level: '중학', name: '중학 수학', desc: '정수와 유리수 · 문자와 식 · 방정식 · 함수', ready: false },
+    { key: 'common', level: '고1', name: '공통수학', desc: '다항식 · 방정식과 부등식 · 함수', ready: false },
+    { key: 'algebra', level: '수능', name: '대수', desc: '지수와 로그 · 삼각함수 · 수열', ready: false },
+    { key: 'calculus', level: '수능', name: '미적분Ⅰ', desc: '함수의 극한 · 미분 · 적분', ready: false },
+    { key: 'stats', level: '수능', name: '확률과 통계', desc: '경우의 수 · 확률 · 통계', ready: false }
+  ];
+
+  function areaRow(a, i, s) {
+    var head = '<span class="no">' + (i + 1) + '</span><span class="txt"><small>' + a.level + '</small><b>' + a.name + '</b>';
+    if (!a.ready) return '<div class="area soon">' + head + '<p>' + a.desc + '</p></span><span class="side">준비 중</span></div>';
+    var pct = s.total ? Math.max(0, Math.min(100, s.done / s.total * 100)) : 0;
+    return '<a class="area" href="' + a.key + '/">' + head + '<p>' + esc(s.next || a.desc) + '</p>'
+      + '<div class="bar"><i style="width:' + pct + '%"></i></div></span>'
+      + '<span class="side">' + (s.total ? num(s.done) + ' / ' + num(s.total) : '') + ic('arrow') + '</span></a>';
+  }
+
+  function render() {
+    MH.apply();
+    var t = MH.dnum(), now = new Date(), h = now.getHours(), mode = MH.mode();
+    var sums = AREAS.map(function (a) { return MH.readSummary(a.key); });
+    /* 영역을 합친 하루 기록: 오늘 푼 문제 수 · 연속 일수 · 복습할 문제 수 */
+    var solved = function (d) { return sums.reduce(function (n, s) { return n + ((s.days && s.days[d]) || 0); }, 0); };
+    var today = solved(t), streak = 0, d = today ? t : t - 1;
+    while (solved(d) > 0) { streak++; d--; }
+    var due = sums.reduce(function (n, s) { return n + (s.due || 0); }, 0);
+    /* 이어서 할 영역: 복습이 가장 많이 밀린 영역 → 아직 다 끝내지 않은 가장 아래 영역 */
+    var ready = AREAS.map(function (a, i) { return { a: a, s: sums[i] }; }).filter(function (x) { return x.a.ready; });
+    var go = ready.filter(function (x) { return x.s.due > 0; }).sort(function (x, y) { return y.s.due - x.s.due; })[0];
+    var next;
+    if (go) next = { href: go.a.key + '/', icon: 'review', head: go.a.name + ' 복습 ' + num(go.s.due) + '문제가 기다려요', sub: '틀렸던 유형을 다시 풀면 오래 기억에 남아요' };
+    else if ((go = ready.filter(function (x) { return !x.s.total || x.s.done < x.s.total; })[0] || ready[ready.length - 1]))
+      next = { href: go.a.key + '/', icon: 'pencil', head: go.s.next || go.a.name + ' 시작하기', sub: go.a.name + ' · 오늘 ' + num(today) + '문제 풀었어요' };
+    var hello = h < 5 ? '늦은 시간까지 수고해요' : h < 12 ? '좋은 아침이에요' : h < 18 ? '좋은 오후예요' : '좋은 저녁이에요';
+    var date = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + '일월화수목금토'[now.getDay()] + '요일';
+    document.getElementById('page').innerHTML =
+      '<header class="top"><span class="logo"><i><b style="background:#5E8BFF"></b><b style="background:#EEF1F6"></b><b style="background:#4FC891"></b></i>Math Hub</span>'
+      + '<button class="theme" id="theme" aria-label="테마 바꾸기: 지금 ' + MODE_LABEL[mode] + '">' + ic(mode) + MODE_LABEL[mode] + '</button></header>'
+      + '<section class="hello"><small>' + date + '</small><h1>' + hello + '.<br>오늘도 10분만 해 볼까요?</h1>'
+      + '<div class="pills"><span class="pill">' + ic('flame') + '연속 ' + streak + '일</span><span class="pill">' + ic('pencil') + '오늘 ' + num(today) + '문제</span><span class="pill">' + ic('review') + '복습 ' + num(due) + '</span></div></section>'
+      + (next ? '<a class="next" href="' + next.href + '">' + ic(next.icon) + '<span class="txt"><b>' + esc(next.head) + '</b><small>' + esc(next.sub) + '</small></span><span class="go">' + ic('arrow') + '</span></a>'
+        : '<div class="next">' + ic('clock') + '<span class="txt"><b>첫 단원을 준비하고 있어요</b><small>기초 계산부터 한 단원씩 열립니다</small></span></div>')
+      + '<h2 class="sec">학습 순서</h2>'
+      + '<section class="areas">' + AREAS.map(function (a, i) { return areaRow(a, i, sums[i]); }).join('') + '</section>'
+      + '<p class="foot">학습 기록은 이 기기에만 저장돼요</p>';
+    document.getElementById('theme').onclick = function () {
+      MH.setMode(MH.MODES[(MH.MODES.indexOf(MH.mode()) + 1) % MH.MODES.length]);
+      render();
+    };
+  }
+
+  MH.onSystemChange(render);
+  addEventListener('pageshow', render);                 /* 영역 앱에서 돌아왔을 때 숫자를 새로 읽는다 */
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
+  render();
+})();
+</script>
+</body>
+</html>
