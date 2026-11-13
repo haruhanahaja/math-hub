@@ -44,3 +44,4 @@
 - 이 컴퓨터에는 Node 가 없다. JS 테스트는 macOS 내장 `jsc` 로 실행한다:
   `/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc`
 - 화면 확인: `cd docs && python3 -m http.server` 후 브라우저에서 열기.
+- 계획 문서: `docs/roadmap.md`(전체 단원 100개와 선수 단원), `docs/architecture.md`(유형 템플릿 · 단원 지도 · 진도/복습 데이터 형식). 단원을 만들 때 이 두 문서를 따른다.
