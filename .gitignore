@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# 편집기
+.idea/
+.vscode/
+*.swp
+
+# Python (PyCharm 이 만든 가상환경 · 도구 스크립트용)
+.venv/
+__pycache__/
+*.pyc
+
+# Node (테스트 도구를 쓸 경우)
+node_modules/
+npm-debug.log*
+
+# Claude Code 개인 설정
+.claude/settings.local.json
+
+# 임시 파일
+*.log
+*.tmp
