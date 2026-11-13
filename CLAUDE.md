@@ -34,14 +34,21 @@
 - 모든 설명과 답변은 한국어로 한다.
 
 ## 프로젝트 구조
+- 계획 문서: `plan/roadmap.md`(전체 단원 100개와 선수 단원), `plan/architecture.md`(유형 템플릿 · 단원 지도 · 진도/복습 데이터 형식 · 결정 사항). 단원을 만들 때 이 두 문서를 따르고, 형식을 바꾸면 문서도 함께 고친다.
 - `docs/` 가 사이트 전체다(GitHub Pages: main 브랜치의 /docs). 빌드 단계 없는 정적 HTML/JS.
-  - `docs/index.html` 허브 화면. 영역 목록은 이 파일의 `AREAS` — 영역 앱을 만들면 `ready: true` 로 바꾼다.
-  - `docs/<영역 key>/` 영역별 앱(basic, middle, common, algebra, calculus, stats).
-  - `docs/shared/hub.js` 공용(`window.MH`): 테마, 허브에 보여 줄 요약(`MH.summary`), 서비스워커 등록.
+  - `docs/index.html` 허브 화면. 영역 목록과 숫자는 단원 지도와 진도 기록에서 읽는다.
+  - `docs/shared/map.js` 단원 지도. 단원을 만들면 `READY` 에 유형 목록을 적는다.
+  - `docs/shared/engine/` 공통 엔진: `rng.js` `num.js` `answer.js` `types.js` `progress.js`(화면 없이 돈다) + `ui.js`(화면).
+  - `docs/<구간 key>/` 구간별 앱(basic, middle, common, algebra, calculus, stats). `index.html` 은 틀뿐이고, 단원은 `units/<소문자 id>.js` 하나씩.
+  - `docs/shared/vendor/` 외부 라이브러리(KaTeX). CDN 을 쓰지 않고 함께 올린다(오프라인 동작).
   - `docs/sw.js` 오프라인용 서비스워커. `docs/` 안의 파일을 고쳤으면 커밋 전에 `python3 tools/build_sw.py` 를 실행한다.
-- localStorage 키는 모두 `mathhub.` 으로 시작한다.
+- localStorage 키는 모두 `mathhub.` 으로 시작한다(`mathhub.progress` 학습 기록, `mathhub.theme` 테마).
 - `tools/` 개발용 스크립트(사이트에 올라가지 않음). 아이콘: `python3 tools/build_icons.py`
-- 이 컴퓨터에는 Node 가 없다. JS 테스트는 macOS 내장 `jsc` 로 실행한다:
-  `/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc`
-- 화면 확인: `cd docs && python3 -m http.server` 후 브라우저에서 열기.
-- 계획 문서: `docs/roadmap.md`(전체 단원 100개와 선수 단원), `docs/architecture.md`(유형 템플릿 · 단원 지도 · 진도/복습 데이터 형식). 단원을 만들 때 이 두 문서를 따른다.
+- 테스트: `sh tests/run.sh`. 이 컴퓨터에는 Node 가 없어서 macOS 내장 `jsc` 로 돌린다.
+- 화면 확인: `cd docs && python3 -m http.server 8000` 후 브라우저에서 `http://localhost:8000/` 열기.
+
+## 단원을 만들 때
+- 순서: ① `docs/<구간>/units/<id>.js` 에 유형 템플릿 ② `docs/shared/map.js` 의 `READY` ③ `tests/units/<id>.test.js` + `tests/run.js` 에 한 줄 ④ `sh tests/run.sh` ⑤ `python3 tools/build_sw.py` ⑥ 커밋.
+- 새 답 형식(분수, 소수 …)이 필요하면 `docs/shared/engine/answer.js` 의 `MH.kinds` 와 `ui.js` 의 입력 칸을 함께 넓힌다.
+- `plan/roadmap.md` 에 `확인` 이라고 적은 네 곳(C12 외분점 제외, F01 원순열 제외, C11 행렬 추가, F09 모비율 추정 추가)은 해당 단원을 만들 때 2022 개정 교육과정 문서로 반드시 확인한다. 기억에 의존하지 않는다.
+- GitHub 저장소는 아직 만들지 않았다. 사용자가 첫 단원을 직접 확인한 뒤에 만들기로 했다. 요청받기 전에는 저장소를 만들거나 푸시하지 않는다.
