@@ -18,6 +18,9 @@
       /** 값은 맞는데 형태를 더 다듬을 수 있으면 알려 줄 말. 자연수는 해당 없음. */
       note: function () { return null; },
       tex: function (value) { return String(value); },
+      /** raw: 그 값을 입력했을 때의 문자열(parse 의 반대) · say: '내 답: …' 에 쓰는 글 */
+      raw: function (value) { return String(value); },
+      say: function (value) { return String(value); },
       valid: function (value) { return Number.isSafeInteger(value) && value >= 0; },
       /** 유형에 적힌 실수로 설명이 안 될 때 보는 공통 실수 */
       common: function (input, answer) {
@@ -31,6 +34,21 @@
           return { id: 'ones-only', explain: '일의 자리만 달라요. 일의 자리 계산을 다시 해 보세요.' };
         return null;
       }
+    },
+    /* 몫과 나머지. 값은 { q, r }. 입력은 두 칸(fields)이고, 판정에는 '몫,나머지' 문자열로 넘어온다. */
+    'quotient-remainder': {
+      fields: ['몫', '나머지'],
+      parse: function (raw) {
+        var m = /^(\d{1,7}),(\d{1,7})$/.exec(String(raw == null ? '' : raw).replace(/\s/g, ''));
+        return m ? { q: Number(m[1]), r: Number(m[2]) } : null;
+      },
+      equal: function (a, b) { return !!a && !!b && a.q === b.q && a.r === b.r; },
+      note: function () { return null; },
+      tex: function (value) { return value.q + ' \\cdots ' + value.r; },
+      raw: function (value) { return value.q + ',' + value.r; },
+      say: function (value) { return '몫 ' + value.q + ', 나머지 ' + value.r; },
+      valid: function (value) { return !!value && Number.isSafeInteger(value.q) && Number.isSafeInteger(value.r) && value.q >= 0 && value.r >= 0; },
+      common: function () { return null; }
     }
   };
 

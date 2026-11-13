@@ -27,17 +27,17 @@
         ok(def.verify(v, p.answer, ctx) === true, where + '검산 실패 ' + JSON.stringify(v) + ' → ' + p.answer);
 
         /* 판정: 정답을 입력하면 정답 */
-        var right = MH.judge(p, kind.tex(p.answer));
-        ok(right.verdict === 'correct', where + '정답 ' + p.answer + ' 를 ' + right.verdict + ' 로 판정');
+        var right = MH.judge(p, kind.raw(p.answer));
+        ok(right.verdict === 'correct', where + '정답 ' + kind.raw(p.answer) + ' 를 ' + right.verdict + ' 로 판정');
         ok(MH.judge(p, '').verdict === 'invalid', where + '빈 입력을 invalid 로 판정하지 않음');
 
         /* 실수: 각 실수의 오답을 입력하면 오답이고, 그 오답을 만드는 실수의 설명이 나온다 */
         var ms = MH.mistakesFor(p);
         ms.forEach(function (m) {
-          var j = MH.judge(p, kind.tex(m.value));
+          var j = MH.judge(p, kind.raw(m.value));
           var same = ms.filter(function (x) { return kind.equal(x.value, m.value); }).map(function (x) { return x.id; });
           ok(j.verdict === 'wrong' && j.mistake && same.indexOf(j.mistake.id) >= 0 && j.mistake.explain.length > 10,
-            where + '실수 ' + m.id + ' 의 오답 ' + m.value + ' → ' + JSON.stringify(j));
+            where + '실수 ' + m.id + ' 의 오답 ' + kind.raw(m.value) + ' → ' + JSON.stringify(j));
           fired[m.id] = 1;
         });
 

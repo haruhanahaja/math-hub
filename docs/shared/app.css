@@ -89,6 +89,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .ans-box.live::after { content: ""; width: 2px; height: 30px; margin-left: 3px; background: var(--brand); animation: blink 1.1s steps(1) infinite; }
 .ans-box.good { box-shadow: inset 0 0 0 2px var(--ok); color: var(--ok); } .ans-box.bad { box-shadow: inset 0 0 0 2px var(--bad); color: var(--bad); }
 .ans-box.shake { animation: shake .3s; }
+.answer.multi { gap: 14px; align-items: flex-end; } .answer.multi .ans-box { min-width: 112px; } .answer .field { display: flex; flex-direction: column; align-items: center; gap: 6px; } .answer .field small { font-size: 13px; font-weight: 650; color: var(--ink-2); }
 .answer .suffix { font-size: 20px; font-weight: 650; color: var(--ink-2); }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }

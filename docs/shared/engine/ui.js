@@ -119,9 +119,19 @@
     P.s.current = task; P.save();
     return task;
   }
+  /* 답 칸: 보통은 하나, 답 형식에 fields 가 있으면(몫 · 나머지) 여러 칸. 판정에는 칸들을 ',' 로 이어서 넘긴다. */
+  function blank(kind) { return (kind.fields || ['']).map(function () { return ''; }); }
+  function rawInput() { return S.fields.join(','); }
+  function syncBoxes() {
+    S.fields.forEach(function (f, i) {
+      var box = document.getElementById('ans' + i);
+      if (box) { box.textContent = f; box.classList.toggle('live', i === S.at); }
+    });
+  }
   function setProblem(task, isTest) {
     var problem = MH.makeProblem(task.type, task.level, task.seed);
-    S = { test: isTest, task: task, problem: problem, def: MH.types[task.type], input: '', phase: 'answer', hints: task.hints || 0,
+    var kind = MH.kinds[MH.types[task.type].answer.kind];
+    S = { test: isTest, task: task, problem: problem, def: MH.types[task.type], kind: kind, fields: blank(kind), at: 0, phase: 'answer', hints: task.hints || 0,
       msgs: [], showSteps: false, ask: false, boxClass: '', final: null, testResult: null };
     drawSolve(true);
   }
@@ -154,14 +164,17 @@
 
   function submit() {
     if (S.phase === 'done') return next();
-    var j = MH.judge(S.problem, S.input), t = today();
+    /* 여러 칸일 때: 지금 칸은 채웠고 빈칸이 남았으면 '확인'은 그 빈칸으로 옮겨 가는 뜻 */
+    var empty = S.fields.indexOf('');
+    if (S.fields.length > 1 && S.fields[S.at] !== '' && empty >= 0) { S.at = empty; return syncBoxes(); }
+    var j = MH.judge(S.problem, rawInput()), t = today();
     if (j.verdict === 'invalid') { S.boxClass = 'shake'; drawSolve(false); S.boxClass = ''; return; }
-    var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + esc(S.input) + esc(suffix()) + '</p>';
+    var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + esc(S.kind.say(j.value)) + esc(suffix()) + '</p>';
     var explain = j.mistake ? '<p>' + esc(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
 
     if (S.test) {
       S.testResult = P.answerTest(right, j.mistake ? j.mistake.id : null, t); P.save();
-      S.phase = 'done'; S.final = S.input; S.boxClass = right ? 'good' : 'bad';
+      S.phase = 'done'; S.final = S.fields.slice(); S.boxClass = right ? 'good' : 'bad';
       S.msgs = [right ? msg('good', '맞았어요') : msg('bad', '틀렸어요', mine + explain + '<p>정답은 ' + tex(answerTex()) + esc(suffix()) + ' 이에요.</p>')];
       drawSolve(true);
       if (right) autoNext();
@@ -174,19 +187,19 @@
         var body = (j.note ? '<p>' + esc(j.note) + '</p>' : '')
           + (S.hints > 0 && S.task.mode === 'study' ? '<p>힌트를 보고 맞힌 문제는 통과 기준에는 세지 않아요.</p>' : '')
           + (S.task.mode === 'review' ? '<p>' + reviewNote() + '</p>' : '');
-        S.phase = 'done'; S.final = S.input; S.boxClass = 'good';
+        S.phase = 'done'; S.final = S.fields.slice(); S.boxClass = 'good';
         S.msgs = [msg('good', '맞았어요', body), extras(out)];
         drawSolve(true);
         if (!out.passedNow && !out.goalNow && !j.note) autoNext();
         return;
       } else {
-        S.phase = 'retry'; S.input = ''; S.ask = false;
+        S.phase = 'retry'; S.fields = blank(S.kind); S.at = 0; S.ask = false;
         S.msgs = [msg('bad', '다시 볼까요?', mine + explain + '<p>한 번 더 풀어 볼 수 있어요. 이 유형은 내일 복습에 다시 나와요.</p>'), extras(out)];
       }
       return drawSolve(true);
     }
     /* 두 번째 답 */
-    S.phase = 'done'; S.final = S.input; S.boxClass = right ? 'good' : 'bad';
+    S.phase = 'done'; S.final = S.fields.slice(); S.boxClass = right ? 'good' : 'bad';
     if (right) S.msgs = [msg('good', '이번엔 맞았어요', '<p>방금 고친 부분을 기억해 두세요.</p>')];
     else { S.msgs = [msg('bad', '정답은 ' + tex(answerTex()) + esc(suffix()) + ' 이에요', mine + explain)]; S.showSteps = true; }
     drawSolve(true);
@@ -216,7 +229,7 @@
       S.msgs.push(msg('', '정답은 ' + tex(answerTex()) + esc(suffix()) + ' 이에요'));
     }
     S.phase = 'done'; S.showSteps = true;
-    if (S.final === null) S.final = '';
+    if (S.final === null) S.final = blank(S.kind);
     drawSolve(true);
   }
   function next() {
@@ -230,10 +243,10 @@
   }
   function press(k) {
     if (S.phase === 'done') return;
-    if (k === 'back') S.input = S.input.slice(0, -1);
-    else if (S.input.length < 7) S.input = (S.input === '0' ? '' : S.input) + k;
-    var box = document.getElementById('ans');
-    if (box) box.textContent = S.input;
+    var f = S.fields[S.at];
+    if (k === 'back') { if (f === '' && S.at > 0) S.at--; else S.fields[S.at] = f.slice(0, -1); }
+    else if (f.length < 7) S.fields[S.at] = (f === '0' ? '' : f) + k;
+    syncBoxes();
   }
 
   function drawSolve(scroll) {
@@ -271,14 +284,19 @@
       keys += '<button class="k-back" data-key="back" aria-label="지우기">' + ic('del') + '</button><button data-key="0">0</button><button class="k-ok" data-act="submit">확인</button>';
       pad = tools + '<div class="keys">' + keys + '</div>';
     }
-    var sfx = suffix();
+    var sfx = suffix(), multi = S.fields.length > 1;
+    var boxes = S.fields.map(function (f, i) {
+      var label = S.kind.fields ? S.kind.fields[i] : '내 답';
+      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '">' + esc(done ? S.final[i] : f) + '</span>';
+      return multi ? '<span class="field"><small>' + label + '</small>' + box + '</span>' : box;
+    }).join('');
     root.innerHTML = '<div class="solve">'
       + '<header class="bar"><a class="icon-btn" href="#unit/' + task.unit + '" aria-label="나가기">' + ic('close') + '</a><span class="mid">' + esc(head) + '</span><span class="count">' + count + '</span></header>'
       + '<div class="track"><i style="width:' + pct + '%"></i></div>'
       + '<main class="q" id="q"><div class="q-tag">' + tag + '</div>'
       + (pr.tex ? '<div class="q-tex">' + tex(pr.tex, false) + '</div>' : '')
       + (pr.text ? '<p class="q-text">' + esc(pr.text) + '</p>' : '')
-      + '<div class="answer"><span class="ans-box ' + (done ? S.boxClass : 'live ' + S.boxClass) + '" id="ans" aria-label="내 답">' + esc(done ? S.final : S.input) + '</span>' + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
+      + '<div class="answer' + (multi ? ' multi' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
       + '<div class="fb" id="fb" aria-live="polite">' + fb + '</div></main>'
       + '<footer class="pad">' + pad + '</footer></div>';
     if (scroll) {
@@ -327,7 +345,8 @@
     var act = el.dataset.act;
     if (act === 'theme') { MH.setMode(MH.MODES[(MH.MODES.indexOf(MH.mode()) + 1) % MH.MODES.length]); return route(); }
     if (!S) return;
-    if (act === 'submit') submit();
+    if (act === 'field') { if (S.phase !== 'done') { S.at = Number(el.dataset.i); syncBoxes(); } }
+    else if (act === 'submit') submit();
     else if (act === 'next') next();
     else if (act === 'hint') showHint();
     else if (act === 'solution') showSolution(false);
@@ -338,6 +357,7 @@
     if (!S || e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^[0-9]$/.test(e.key)) press(e.key);
     else if (e.key === 'Backspace') press('back');
+    else if (e.key === 'Tab' && S.fields.length > 1 && S.phase !== 'done') { e.preventDefault(); S.at = (S.at + 1) % S.fields.length; syncBoxes(); }
     else if (e.key === 'Enter') { e.preventDefault(); submit(); }
   }
 
