@@ -56,13 +56,16 @@
       var note = kind.note(value, raw, def.answer);
       return { verdict: note ? 'correct-note' : 'correct', note: note, mistake: null, value: value };
     }
-    var found = null;
-    /* ① 값이 아니라 쓴 모양을 봐야 하는 실수 ② 그 유형의 흔한 실수 ③ 공통 실수 */
+    var found = null, usable = {};
+    MH.mistakesFor(problem).forEach(function (m) { usable[m.id] = m; });
+    /* ① 그 유형의 흔한 실수를 적힌 순서대로 본다. wrong: 그 실수가 만드는 오답과 같은가 · match: 입력을 직접 보고 판단
+       ② 없으면 답 형식의 공통 실수(유형이 answer.common: false 로 끌 수 있다) */
     def.mistakes.forEach(function (m) {
-      if (!found && m.match && m.match(problem.v, raw, problem.ctx)) found = { id: m.id, explain: m.explain(problem.v, problem.ctx) };
+      if (found) return;
+      if (m.match) { if (m.match(problem.v, raw, problem.ctx)) found = { id: m.id, explain: m.explain(problem.v, problem.ctx, value) }; }
+      else if (usable[m.id] && kind.equal(usable[m.id].value, value)) found = { id: m.id, explain: usable[m.id].explain };
     });
-    if (!found) MH.mistakesFor(problem).forEach(function (m) { if (!found && kind.equal(m.value, value)) found = { id: m.id, explain: m.explain }; });
-    if (!found) found = kind.common(value, problem.answer);
+    if (!found && def.answer.common !== false) found = kind.common(value, problem.answer);
     return { verdict: 'wrong', note: null, mistake: found, value: value };
   };
 })();

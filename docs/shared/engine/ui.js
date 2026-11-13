@@ -38,6 +38,13 @@
   function dateOf(dnum) { var d = new Date(dnum * 864e5); return (d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일'; }
   function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
   function unitLabel(u) { return u.id + ' ' + u.title; }
+  /** 단원을 통과한 뒤 덧붙일 말: 이 단원 덕분에 새로 열린 단원 → 아직 남은 열린 단원 → 준비 중 */
+  function afterPass(id) {
+    var opened = MH.MAP.units.filter(function (u) { return u.requires.indexOf(id) >= 0 && P.status(u.id) === 'open'; });
+    if (opened.length) return ' 다음 단원 「' + esc(opened[0].title) + '」이 열렸어요.'.replace('」이', '」' + MH.josa(opened[0].title, '이/가').slice(opened[0].title.length));
+    var cur = P.currentUnit(STAGE);
+    return cur ? ' 이어서 「' + esc(MH.MAP.unit(cur).title) + '」 단원을 공부해요.' : ' 다음 단원은 준비 중이에요.';
+  }
 
   /* ── 구간 홈 ─────────────────────────────────────────── */
   function renderHome() {
@@ -130,8 +137,8 @@
   function extras(out) {
     var h = '';
     if (out.passedNow) {
-      var u = MH.MAP.unit(S.task.unit), next = P.currentUnit(STAGE);
-      h += msg('star', esc(unitLabel(u)) + ' 통과', '<p>최근 10문제 중 9문제를 힌트 없이 맞혔어요.' + (next ? ' 다음 단원 「' + esc(MH.MAP.unit(next).title) + '」이 열렸어요.' : ' 다음 단원은 준비 중이에요.') + '</p>');
+      var u = MH.MAP.unit(S.task.unit);
+      h += msg('star', esc(unitLabel(u)) + ' 통과', '<p>최근 10문제 중 9문제를 힌트 없이 맞혔어요.' + afterPass(u.id) + '</p>');
     }
     if (out.goalNow) h += msg('star', '오늘 목표 ' + P.s.settings.goal + '문제를 채웠어요', '<p>여기서 멈춰도 좋아요. 더 풀어도 괜찮아요.</p>');
     return h;
@@ -150,7 +157,7 @@
     var j = MH.judge(S.problem, S.input), t = today();
     if (j.verdict === 'invalid') { S.boxClass = 'shake'; drawSolve(false); S.boxClass = ''; return; }
     var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + esc(S.input) + esc(suffix()) + '</p>';
-    var explain = j.mistake ? '<p>' + esc(j.mistake.explain) + '</p>' : '<p>어디서 달라졌는지 한 자리씩 다시 계산해 보세요.</p>';
+    var explain = j.mistake ? '<p>' + esc(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
 
     if (S.test) {
       S.testResult = P.answerTest(right, j.mistake ? j.mistake.id : null, t); P.save();
@@ -293,11 +300,11 @@
   }
   function renderTestResult(r) {
     S = null;
-    var u = MH.MAP.unit(r.unit), next = P.currentUnit(STAGE);
+    var u = MH.MAP.unit(r.unit);
     var wrong = r.wrongTypes.map(function (t) { return '「' + esc(MH.types[t].title) + '」'; }).join(', ');
     root.innerHTML = '<div class="page"><header class="bar"><a class="icon-btn" href="#unit/' + r.unit + '" aria-label="단원으로">' + ic('back') + '</a><h1>바로 통과 시험</h1></header>'
       + '<div class="card result"><b>' + r.score + ' / ' + r.total + '</b><h2>' + (r.passed ? esc(unitLabel(u)) + ' 통과' : '아직 통과하지 못했어요') + '</h2>'
-      + '<p>' + (r.passed ? (next ? '다음 단원 「' + esc(MH.MAP.unit(next).title) + '」이 열렸어요.' : '다음 단원은 준비 중이에요.')
+      + '<p>' + (r.passed ? afterPass(r.unit).trim()
         : '9문제 이상 맞혀야 통과해요. ' + (wrong ? wrong + ' 유형부터 차근차근 연습해요.' : '')) + (r.wrongTypes.length && r.passed ? ' 틀린 유형은 내일 복습에 나와요.' : '') + '</p></div>'
       + '<div class="actions">' + (r.passed ? '<a class="btn" href="#">단원 목록으로</a>' : '<a class="btn" href="#study/' + r.unit + '">공부하기</a><a class="btn ghost" href="#">단원 목록으로</a>') + '</div></div>';
   }
