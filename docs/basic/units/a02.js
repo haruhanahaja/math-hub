@@ -129,9 +129,9 @@
       { id: 'subtracted', wrong: function (v) { return v.p - v.a; },
         explain: function (v) { return v.p + '에서 ' + josa(v.a, '을/를') + ' 뺐어요. 덧셈식이 아니라 곱셈식이에요. ' + v.a + '씩 몇 번 뛰어 세면 ' + josa(v.p, '이/가') + ' 되는지 세어 보세요.'; } },
       { id: 'one-less', wrong: function (v) { return v.x - 1; },
-        explain: function (v) { return v.a + ' × ' + (v.x - 1) + ' = ' + v.a * (v.x - 1) + ' 이라서 ' + v.p + '보다 작아요. 한 번 더 뛰어 세어야 해요.'; } },
+        explain: function (v) { return v.a + ' × ' + (v.x - 1) + ' = ' + josa(v.a * (v.x - 1), '이라서/라서') + ' ' + v.p + '보다 작아요. 한 번 더 뛰어 세어야 해요.'; } },
       { id: 'one-more', wrong: function (v) { return v.x + 1; },
-        explain: function (v) { return v.a + ' × ' + (v.x + 1) + ' = ' + v.a * (v.x + 1) + ' 이라서 ' + v.p + '보다 커요. 한 번 덜 뛰어 세어야 해요.'; } },
+        explain: function (v) { return v.a + ' × ' + (v.x + 1) + ' = ' + josa(v.a * (v.x + 1), '이라서/라서') + ' ' + v.p + '보다 커요. 한 번 덜 뛰어 세어야 해요.'; } },
       { id: 'copied', match: function (v, raw) { var n = MH.kinds.int.parse(raw); return n === v.p || n === v.a; },
         explain: function (v) { return '식에 있는 수를 그대로 썼어요. □에는 ' + v.a + '에 곱해서 ' + josa(v.p, '이/가') + ' 되는 수가 들어가요.'; } }
     ]

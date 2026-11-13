@@ -26,6 +26,7 @@ load('tests/progress.test.js');
 load('tests/units/a01.test.js');
 load('tests/units/a02.test.js');
 load('tests/units/a03.test.js');
+load('tests/units/a04.test.js');
 
 print('\n' + (T.fail ? '실패 ' + T.fail + '개, ' : '') + '통과 ' + T.pass + '개');
 if (T.fail) throw new Error('테스트 실패');

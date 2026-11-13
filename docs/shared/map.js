@@ -19,7 +19,8 @@
   var READY = {
     A01: ['A01.add', 'A01.sub', 'A01.blank', 'A01.word'],
     A02: ['A02.low', 'A02.high', 'A02.blank', 'A02.word'],
-    A03: ['A03.tens', 'A03.one', 'A03.two', 'A03.word']
+    A03: ['A03.tens', 'A03.one', 'A03.two', 'A03.word'],
+    A04: ['A04.low', 'A04.high', 'A04.relation', 'A04.word']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */
