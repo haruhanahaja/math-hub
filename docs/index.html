@@ -89,6 +89,8 @@ a.area:active { transform: scale(.985); }
 <div class="page" id="page"></div>
 <noscript><p style="padding:24px">이 앱은 JavaScript가 필요합니다.</p></noscript>
 <script src="shared/hub.js" data-root="./"></script>
+<script src="shared/map.js"></script>
+<script src="shared/engine/progress.js"></script>
 <script>
 (function () {
   'use strict';
@@ -108,41 +110,31 @@ a.area:active { transform: scale(.985); }
   var num = function (n) { return Number(n).toLocaleString('ko-KR'); };
   var MODE_LABEL = { auto: '시스템', light: '라이트', dark: '다크' };
 
-  /* 영역 목록(아래에서 위로 올라가는 순서). ready: 앱이 만들어진 영역만 true — 폴더 이름은 key 와 같다. */
-  var AREAS = [
-    { key: 'basic', level: '초등', name: '기초 계산', desc: '자연수 · 분수 · 소수의 사칙연산', ready: false },
-    { key: 'middle', level: '중학', name: '중학 수학', desc: '정수와 유리수 · 문자와 식 · 방정식 · 함수', ready: false },
-    { key: 'common', level: '고1', name: '공통수학', desc: '다항식 · 방정식과 부등식 · 함수', ready: false },
-    { key: 'algebra', level: '수능', name: '대수', desc: '지수와 로그 · 삼각함수 · 수열', ready: false },
-    { key: 'calculus', level: '수능', name: '미적분Ⅰ', desc: '함수의 극한 · 미분 · 적분', ready: false },
-    { key: 'stats', level: '수능', name: '확률과 통계', desc: '경우의 수 · 확률 · 통계', ready: false }
-  ];
-
-  function areaRow(a, i, s) {
+  /* 영역 목록과 숫자는 단원 지도(shared/map.js)와 진도 기록(shared/engine/progress.js)에서 읽는다. */
+  function areaRow(a, i, pr, next) {
     var head = '<span class="no">' + (i + 1) + '</span><span class="txt"><small>' + a.level + '</small><b>' + a.name + '</b>';
-    if (!a.ready) return '<div class="area soon">' + head + '<p>' + a.desc + '</p></span><span class="side">준비 중</span></div>';
-    var pct = s.total ? Math.max(0, Math.min(100, s.done / s.total * 100)) : 0;
-    return '<a class="area" href="' + a.key + '/">' + head + '<p>' + esc(s.next || a.desc) + '</p>'
-      + '<div class="bar"><i style="width:' + pct + '%"></i></div></span>'
-      + '<span class="side">' + (s.total ? num(s.done) + ' / ' + num(s.total) : '') + ic('arrow') + '</span></a>';
+    if (!pr.ready) return '<div class="area soon">' + head + '<p>' + a.desc + '</p></span><span class="side">준비 중</span></div>';
+    return '<a class="area" href="' + a.key + '/">' + head + '<p>' + esc(next || a.desc) + '</p>'
+      + '<div class="bar"><i style="width:' + (pr.done * 100 / pr.total) + '%"></i></div></span>'
+      + '<span class="side">' + num(pr.done) + ' / ' + num(pr.total) + ic('arrow') + '</span></a>';
   }
 
   function render() {
     MH.apply();
+    var P = MH.progress, AREAS = MH.MAP.stages;
+    P.load();
     var t = MH.dnum(), now = new Date(), h = now.getHours(), mode = MH.mode();
-    var sums = AREAS.map(function (a) { return MH.readSummary(a.key); });
-    /* 영역을 합친 하루 기록: 오늘 푼 문제 수 · 연속 일수 · 복습할 문제 수 */
-    var solved = function (d) { return sums.reduce(function (n, s) { return n + ((s.days && s.days[d]) || 0); }, 0); };
-    var today = solved(t), streak = 0, d = today ? t : t - 1;
-    while (solved(d) > 0) { streak++; d--; }
-    var due = sums.reduce(function (n, s) { return n + (s.due || 0); }, 0);
-    /* 이어서 할 영역: 복습이 가장 많이 밀린 영역 → 아직 다 끝내지 않은 가장 아래 영역 */
-    var ready = AREAS.map(function (a, i) { return { a: a, s: sums[i] }; }).filter(function (x) { return x.a.ready; });
-    var go = ready.filter(function (x) { return x.s.due > 0; }).sort(function (x, y) { return y.s.due - x.s.due; })[0];
-    var next;
-    if (go) next = { href: go.a.key + '/', icon: 'review', head: go.a.name + ' 복습 ' + num(go.s.due) + '문제가 기다려요', sub: '틀렸던 유형을 다시 풀면 오래 기억에 남아요' };
-    else if ((go = ready.filter(function (x) { return !x.s.total || x.s.done < x.s.total; })[0] || ready[ready.length - 1]))
-      next = { href: go.a.key + '/', icon: 'pencil', head: go.s.next || go.a.name + ' 시작하기', sub: go.a.name + ' · 오늘 ' + num(today) + '문제 풀었어요' };
+    var today = P.day(t).n, streak = P.streak(t), due = P.s.reviews.filter(function (r) { return r.due <= t; }).length;
+    var rows = AREAS.map(function (a) {
+      var cur = P.currentUnit(a.id);
+      return { a: a, pr: P.stageProgress(a.id), cur: cur && MH.MAP.unit(cur) };
+    });
+    /* 이어서 할 영역: 공부할 단원이 열려 있는 가장 아래 영역 */
+    var go = rows.filter(function (x) { return x.pr.ready && x.cur; })[0], next;
+    if (go) next = { href: go.a.key + '/', icon: due ? 'review' : 'pencil',
+      head: due ? '복습 ' + num(due) + '문제가 기다려요' : go.cur.id + ' ' + go.cur.title,
+      sub: due ? '틀렸던 유형을 다시 풀면 오래 기억에 남아요' : go.a.name + ' · 오늘 ' + num(today) + ' / ' + num(P.s.settings.goal) + '문제' };
+    else if ((go = rows.filter(function (x) { return x.pr.ready; }).pop()) && due) next = { href: go.a.key + '/', icon: 'review', head: '복습 ' + num(due) + '문제가 기다려요', sub: '틀렸던 유형을 다시 풀면 오래 기억에 남아요' };
     var hello = h < 5 ? '늦은 시간까지 수고해요' : h < 12 ? '좋은 아침이에요' : h < 18 ? '좋은 오후예요' : '좋은 저녁이에요';
     var date = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + '일월화수목금토'[now.getDay()] + '요일';
     document.getElementById('page').innerHTML =
@@ -151,9 +143,9 @@ a.area:active { transform: scale(.985); }
       + '<section class="hello"><small>' + date + '</small><h1>' + hello + '.<br>오늘도 10분만 해 볼까요?</h1>'
       + '<div class="pills"><span class="pill">' + ic('flame') + '연속 ' + streak + '일</span><span class="pill">' + ic('pencil') + '오늘 ' + num(today) + '문제</span><span class="pill">' + ic('review') + '복습 ' + num(due) + '</span></div></section>'
       + (next ? '<a class="next" href="' + next.href + '">' + ic(next.icon) + '<span class="txt"><b>' + esc(next.head) + '</b><small>' + esc(next.sub) + '</small></span><span class="go">' + ic('arrow') + '</span></a>'
-        : '<div class="next">' + ic('clock') + '<span class="txt"><b>첫 단원을 준비하고 있어요</b><small>기초 계산부터 한 단원씩 열립니다</small></span></div>')
+        : '<div class="next">' + ic('clock') + '<span class="txt"><b>다음 단원을 준비하고 있어요</b><small>열린 단원을 모두 통과했어요</small></span></div>')
       + '<h2 class="sec">학습 순서</h2>'
-      + '<section class="areas">' + AREAS.map(function (a, i) { return areaRow(a, i, sums[i]); }).join('') + '</section>'
+      + '<section class="areas">' + rows.map(function (x, i) { return areaRow(x.a, i, x.pr, x.cur && (x.cur.id + ' ' + x.cur.title)); }).join('') + '</section>'
       + '<p class="foot">학습 기록은 이 기기에만 저장돼요</p>';
     document.getElementById('theme').onclick = function () {
       MH.setMode(MH.MODES[(MH.MODES.indexOf(MH.mode()) + 1) % MH.MODES.length]);
