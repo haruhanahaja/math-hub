@@ -293,6 +293,12 @@
       if (k === 'back') S.fields[0] = ''; else if (MH.optionsOf(S.problem).indexOf(k) >= 0) S.fields[0] = k;
       return syncBoxes();
     }
+    if (S.kind.layout === 'decimal' && k !== 'back') {     /* 소수: 소수점은 한 번만, 소수점 아래는 네 자리까지 */
+      var dot = f.indexOf('.');
+      if (k === '.') { if (dot < 0 && f.length < 7) S.fields[S.at] = (f === '' ? '0' : f) + '.'; }
+      else if (dot < 0 ? f.length < 7 : f.length - dot <= 4) S.fields[S.at] = (f === '0' ? '' : f) + k;
+      return syncBoxes();
+    }
     if (k === 'back') { if (f === '' && S.at > 0) S.at--; else S.fields[S.at] = f.slice(0, -1); }
     else if (f.length < 7) S.fields[S.at] = (f === '0' ? '' : f) + k;
     syncBoxes();
@@ -336,7 +342,8 @@
         keys = MH.optionsOf(S.problem).map(function (o) { return '<button data-key="' + esc(o) + '" aria-label="' + esc(o) + '">' + tex(S.kind.tex(o), false) + '</button>'; }).join('')
           + '<button class="k-ok" data-act="submit">확인</button>';
       }
-      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' : '') + '">' + keys + '</div>';
+      if (S.kind.layout === 'decimal') keys = keys.replace('<button class="k-ok"', '<button data-key="." aria-label="소수점">.</button><button class="k-ok"');
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' : S.kind.layout === 'decimal' ? ' dec' : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
@@ -420,6 +427,7 @@
   function onKey(e) {
     if (!S || e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^[0-9]$/.test(e.key) || (S.kind.layout === 'choice' && e.key.length === 1)) press(e.key);
+    else if (e.key === '.' && S.kind.layout === 'decimal') press('.');
     else if (e.key === 'Backspace') press('back');
     else if (e.key === 'Tab' && S.fields.length > 1 && S.phase !== 'done') { e.preventDefault(); S.at = (S.at + 1) % S.fields.length; syncBoxes(); }
     else if (e.key === 'Enter') { e.preventDefault(); submit(); }

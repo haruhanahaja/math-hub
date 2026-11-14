@@ -11,6 +11,22 @@
   /** 분수. F(3, 4) → 3/4 (fraction.js 의 Fraction: add · sub · mul · div · equals · compare, 값은 늘 기약분수로 n / d 에 들어 있다) */
   MH.F = function (n, d) { return new globalThis.Fraction(n, d === undefined ? 1 : d); };
 
+  /* 소수는 { n, p } 로 다룬다: n ÷ 10^p (n 은 0 이상의 정수, p 는 소수점 아래 자릿수). 3.25 → { n: 325, p: 2 }.
+     더하고 빼고 비교할 때는 자릿수를 맞춘 정수로 계산한다(부동소수점을 쓰지 않는다). */
+  MH.pow10 = function (p) { var x = 1; while (p-- > 0) x *= 10; return x; };
+  /** 소수 값을 만든다. 끝의 0 은 덜어 낸다: dec(350, 2) → { n: 35, p: 1 } */
+  MH.dec = function (n, p) { p = p || 0; while (p > 0 && n % 10 === 0) { n /= 10; p--; } return { n: n, p: p }; };
+  /** 소수를 글자로: decStr(325, 2) → '3.25', decStr(5, 2) → '0.05'. keep 이 참이면 끝의 0 을 남긴다: decStr(350, 2, true) → '3.50' */
+  MH.decStr = function (n, p, keep) {
+    var s = String(n);
+    if (!p) return s;
+    while (s.length <= p) s = '0' + s;
+    s = s.slice(0, -p) + '.' + s.slice(-p);
+    return keep ? s : s.replace(/0+$/, '').replace(/\.$/, '');
+  };
+  /** 소수점 아래 자리 이름: 1 → 소수 첫째 자리 */
+  MH.decPlace = function (i) { return '소수 ' + ['첫째', '둘째', '셋째', '넷째'][i - 1] + ' 자리'; };
+
   /** 자연수의 자릿수 목록. 일의 자리가 맨 앞: digits(347) → [7, 4, 3] */
   MH.digits = function (n) {
     var out = [];

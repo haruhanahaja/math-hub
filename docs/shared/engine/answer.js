@@ -134,6 +134,44 @@
       }
     }
   };
+  /* 소수. 값은 { n, p }: n ÷ 10^p (MH.dec 참고). 입력은 숫자 키패드 + 소수점 키로 친 문자열('3.25').
+     값이 같으면 정답(0.50 = 0.5). 끝에 0 을 붙여 썼으면 알려 주기만 한다(answer.zeros: 'off' 로 끌 수 있다). */
+  MH.kinds.decimal = {
+    layout: 'decimal',
+    parse: function (raw) {
+      var m = /^(\d{1,7})(?:\.(\d{0,4}))?$/.exec(String(raw == null ? '' : raw).trim());
+      if (!m) return null;
+      var f = m[2] || '';
+      return { n: Number(m[1] + f), p: f.length };
+    },
+    valid: function (v) { return !!v && Number.isSafeInteger(v.n) && v.n >= 0 && Number.isInteger(v.p) && v.p >= 0 && v.p <= 6; },
+    equal: function (a, b) { return this.valid(a) && this.valid(b) && a.n * MH.pow10(b.p) === b.n * MH.pow10(a.p); },
+    note: function (v, raw, spec) {
+      if ((spec && spec.zeros === 'off') || v.p === 0 || v.n % 10 !== 0) return null;
+      var d = MH.dec(v.n, v.p);
+      return '소수점 아래 끝의 0은 쓰지 않아도 돼요: ' + MH.decStr(d.n, d.p) + '.';
+    },
+    tex: function (v) { return MH.decStr(v.n, v.p); },
+    raw: function (v) { return MH.decStr(v.n, v.p); },
+    /** '내 답' 은 입력한 그대로(끝의 0 도) 보여 준다 */
+    say: function (v) { return MH.decStr(v.n, v.p, true); },
+    common: function (input, answer) {
+      var P = Math.max(input.p, answer.p), A = input.n * MH.pow10(P - input.p), B = answer.n * MH.pow10(P - answer.p);
+      if (A === 0 || B === 0) return null;
+      for (var k = 1; k <= 4; k++) {
+        if (A === B * MH.pow10(k) || A * MH.pow10(k) === B)
+          return { id: 'point-shift', explain: '숫자는 맞는데 소수점의 자리가 달라요. 소수점을 어느 자리 뒤에 찍어야 하는지 다시 확인해 보세요.' };
+      }
+      var d = Math.abs(A - B);
+      for (var i = 0, t = 1; t <= d; i++, t *= 10) {
+        if (d === t) {
+          var name = i >= P ? MH.place(i - P) + '의 자리' : MH.decPlace(P - i);
+          return { id: 'place-diff', explain: name + '가 1만큼 달라요. 그 자리로 받아올리거나 받아내린 수를 빠뜨리지 않았는지 확인해 보세요.' };
+        }
+      }
+      return null;
+    }
+  };
   /* 보기 고르기. 값은 보기의 글자 그대로('>', '=', '<' …). 보기 목록은 유형의 answer.options(배열, 또는 (v, ctx) 를 받는 함수)에 적는다.
      화면에는 숫자 키패드 대신 보기 단추가 나온다. */
   MH.kinds.choice = {
