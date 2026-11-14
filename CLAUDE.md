@@ -55,4 +55,5 @@
 - 순서: ① `docs/<구간>/units/<id>.js` 에 유형 템플릿 ② `docs/shared/map.js` 의 `READY` ③ `tests/units/<id>.test.js` + `tests/run.js` 에 한 줄 ④ `sh tests/run.sh` ⑤ `python3 tools/build_sw.py` ⑥ 커밋.
 - 새 답 형식(소수 …)이 필요하면 `docs/shared/engine/answer.js` 의 `MH.kinds` 와 `ui.js` 의 입력 칸을 함께 넓힌다. 지금 있는 형식: `int`, `quotient-remainder`, `fraction`, `choice`(보기 고르기. 보기는 유형의 `answer.options`).
 - 그림이 필요한 문제는 `prompt` 가 `figure` 를 돌려준다(띠 `bar`, 수직선 `line`). 새 그림은 `ui.js` 의 `MH.figure` 에 추가한다.
+- 문제 글(`prompt` 의 `text`) 안에 분수를 쓸 때는 `$\dfrac{3}{4}$` 처럼 `$ … $` 로 감싼다(화면에서 수식으로 그린다). `3/4` 로 쓰지 않는다.
 - `plan/roadmap.md` 에 `확인` 이라고 적은 네 곳(C12 외분점 제외, F01 원순열 제외, C11 행렬 추가, F09 모비율 추정 추가)은 해당 단원을 만들 때 2022 개정 교육과정 문서로 반드시 확인한다. 기억에 의존하지 않는다.

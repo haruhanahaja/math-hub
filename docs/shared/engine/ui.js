@@ -350,7 +350,7 @@
       + '<div class="track"><i style="width:' + pct + '%"></i></div>'
       + '<main class="q" id="q"><div class="q-tag">' + tag + '</div>'
       + (pr.tex ? '<div class="q-tex">' + tex(pr.tex, false) + '</div>' : '')
-      + (pr.text ? '<p class="q-text">' + esc(pr.text) + '</p>' : '')
+      + (pr.text ? '<p class="q-text">' + rich(pr.text) + '</p>' : '')
       + (pr.figure ? MH.figure(pr.figure) : '')
       + '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
       + '<div class="fb" id="fb" aria-live="polite">' + fb + '</div></main>'
