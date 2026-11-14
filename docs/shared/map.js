@@ -30,7 +30,8 @@
     A11: ['A11.by-whole', 'A11.frac', 'A11.cancel', 'A11.mixed', 'A11.of'],
     A12: ['A12.reciprocal', 'A12.by-whole', 'A12.count', 'A12.frac', 'A12.mixed'],
     A13: ['A13.read', 'A13.place', 'A13.compare', 'A13.add', 'A13.sub'],
-    A14: ['A14.shift', 'A14.by-whole', 'A14.mul', 'A14.div-whole', 'A14.div']
+    A14: ['A14.shift', 'A14.by-whole', 'A14.mul', 'A14.div-whole', 'A14.div'],
+    A15: ['A15.to-ten', 'A15.to-decimal', 'A15.to-fraction', 'A15.compare']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */
