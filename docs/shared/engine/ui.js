@@ -33,6 +33,8 @@
     if (window.katex) { try { return window.katex.renderToString(src, { displayMode: !!display, throwOnError: false }); } catch (e) { /* 아래로 */ } }
     return '<code>' + esc(src) + '</code>';
   }
+  /** 글 안의 $ … $ 부분만 수식으로 그린다(분수를 책에 쓰는 모양으로 보여 줄 때) */
+  function rich(s) { return String(s).split('$').map(function (part, i) { return i % 2 ? tex(part, false) : esc(part); }).join(''); }
   function today() { return MH.dnum(); }
   function rnd() { return Math.floor(Math.random() * 4294967296) >>> 0; }
   function dateOf(dnum) { var d = new Date(dnum * 864e5); return (d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일'; }
@@ -209,7 +211,7 @@
       S.boxClass = 'shake'; drawSolve(false); S.boxClass = ''; return;
     }
     S.redo = null;
-    var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + esc(S.kind.say(j.value)) + esc(suffix()) + '</p>';
+    var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + (S.kind.sayTex ? tex(S.kind.sayTex(j.value), false) : esc(S.kind.say(j.value))) + esc(suffix()) + '</p>';
     var explain = j.mistake ? '<p>' + esc(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
 
     if (S.test) {
@@ -224,7 +226,7 @@
       var out = P.record(S.task, { correct: right, hinted: S.hints > 0, mistake: j.mistake ? j.mistake.id : null }, t);
       S.task.rec = true; P.save();
       if (right) {
-        var body = (j.note ? '<p>' + esc(j.note) + '</p>' : '')
+        var body = (j.note ? '<p>' + rich(j.note) + '</p>' : '')
           + (S.hints > 0 && S.task.mode === 'study' ? '<p>힌트를 보고 맞힌 문제는 통과 기준에는 세지 않아요.</p>' : '')
           + (S.task.mode === 'review' ? '<p>' + reviewNote() + '</p>' : '');
         S.phase = 'done'; S.final = S.fields.slice(); S.boxClass = 'good';

@@ -40,13 +40,14 @@
     ok(K.equal(K.parse(K.raw(c[0], c[1])), c[0]) && K.redo(K.parse(K.raw(c[0], c[1])), '', c[1]) === null, 'raw 를 다시 읽으면 같은 값이고 꼴도 맞음: ' + show(c[0]) + ' ' + JSON.stringify(c[1]));
   });
   eq(K.say(K.parse('1,3,4')) + ' | ' + K.say(K.parse('2,3,4')) + ' | ' + K.say(K.parse('7,4')) + ' | ' + K.say(K.parse('2,,')), '1과 3/4 | 2와 3/4 | 7/4 | 2', '내 답 표시');
+  eq(K.sayTex(K.parse('1,3,4')) + ' | ' + K.sayTex(K.parse('7,4')) + ' | ' + K.sayTex(K.parse('2,,')), '1\\frac{3}{4} | \\frac{7}{4} | 2', '내 답을 수식으로');
   eq(K.fieldsOf({}).join(' ') + ' | ' + K.fieldsOf({ form: 'mixed' }).join(' ') + ' | ' + K.fieldsOf({ whole: true }).join(' '), '분자 분모 | 자연수 분자 분모 | 자연수 분자 분모', '입력 칸');
   eq(K.start({}) + ' ' + K.start({ form: 'mixed' }) + ' ' + K.start({ whole: true }), '0 0 1', '처음 커서: 분자 칸(대분수를 묻는 문제만 자연수 칸)');
   eq([K.next(['', ''], 0), K.next(['3', ''], 0), K.next(['3', '4'], 0), K.next(['', '4'], 1), K.next(['3', '4'], 1)].join(' '), '-1 1 -1 0 -1', '확인을 눌렀을 때 옮겨 갈 칸(두 칸)');
   eq([K.next(['1', '', ''], 0), K.next(['1', '', ''], 1), K.next(['1', '3', ''], 1), K.next(['1', '3', '4'], 2), K.next(['', '', '4'], 2), K.next(['', '', ''], 0)].join(' '), '1 -1 2 -1 1 -1', '확인을 눌렀을 때 옮겨 갈 칸(세 칸)');
-  eq(K.note(K.parse('2,4'), '2,4', {}), '약분하면 1/2이에요.', '약분 안내');
-  eq(K.note(K.parse('1,2,4'), '1,2,4', {}), '약분하면 1과 1/2이에요.', '대분수의 약분 안내');
-  eq(K.note(K.parse('4,6'), '4,6', {}), '약분하면 2/3예요.', '약분 안내의 조사');
+  eq(K.note(K.parse('2,4'), '2,4', {}), '약분하면 $\\frac{1}{2}$이에요.', '약분 안내(분수는 수식으로)');
+  eq(K.note(K.parse('1,2,4'), '1,2,4', {}), '약분하면 $1\\frac{1}{2}$이에요.', '대분수의 약분 안내');
+  eq(K.note(K.parse('4,6'), '4,6', {}), '약분하면 $\\frac{2}{3}$예요.', '약분 안내의 조사');
   eq(K.note(K.parse('1,2'), '1,2', {}), null, '기약분수는 안내 없음');
   eq(K.note(K.parse('2,4'), '2,4', { reduce: 'off' }), null, 'reduce: off 이면 안내 없음');
   eq(K.common(K.parse('4,3'), { n: 3, d: 4 }).id, 'swapped', '공통 실수: 분자와 분모가 바뀜');

@@ -100,7 +100,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .fb { margin-top: 16px; display: grid; gap: 10px; }
 .msg { padding: 14px 16px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); word-break: keep-all; }
-.msg b { display: block; font-size: 16px; letter-spacing: -.02em; } .msg p { margin-top: 4px; color: var(--ink-2); font-size: 14.5px; } .msg p.mine { color: var(--muted); font-size: 13px; }
+.msg b { display: block; font-size: 16px; letter-spacing: -.02em; } .msg p { margin-top: 4px; color: var(--ink-2); font-size: 14.5px; } .msg p.mine { color: var(--muted); font-size: 13px; } .msg p.mine .katex { font-size: 1.3em; }
 .msg.good { background: var(--ok-soft); box-shadow: none; } .msg.good b { color: var(--ok); }
 .msg.bad { background: var(--bad-soft); box-shadow: none; } .msg.bad b { color: var(--bad); }
 .msg.star { background: var(--soft); box-shadow: none; } .msg.star b { color: var(--brand); }

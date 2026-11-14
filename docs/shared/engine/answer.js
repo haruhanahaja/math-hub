@@ -95,11 +95,11 @@
         if (form === 'improper' && v.w !== null && v.pn !== null) return '값은 맞아요. 자연수 부분 없이 가분수로 써 보세요.';
         return null;
       },
-      /** 약분이 덜 됐으면 알려 줄 말 */
+      /** 약분이 덜 됐으면 알려 줄 말. $ … $ 사이는 화면에서 수식으로 그린다. */
       note: function (v, raw, spec) {
         if ((spec && spec.reduce === 'off') || v.pn === null) return null;
         var g = MH.gcd(v.pn, v.d);
-        return g > 1 ? '약분하면 ' + this.say({ n: v.n / g, d: v.d / g, w: v.w, pn: v.pn / g }) + josaOf(v.pn / g) + '.' : null;
+        return g > 1 ? '약분하면 $' + this.sayTex({ n: v.n / g, d: v.d / g, w: v.w, pn: v.pn / g }) + '$' + josaOf(v.pn / g) + '.' : null;
       },
       /** 대분수 꼴로 나눈다: { w, r } (n = w × d + r) */
       split: function (v) { var r = v.n % v.d; return { w: (v.n - r) / v.d, r: r }; },
@@ -115,7 +115,12 @@
         if (spec && spec.form === 'mixed' && m.w > 0) return m.w + ',' + m.r + ',' + v.d;
         return (whole ? ',' : '') + (v.d === 1 ? v.n + ',1' : v.n + ',' + v.d);
       },
-      /** '내 답' 표시: 입력한 그대로(1과 3/4, 7/4, 2) */
+      /** '내 답' 을 책에 쓰는 모양(분자를 위, 분모를 아래)으로 보여 줄 수식. 입력한 그대로다. */
+      sayTex: function (v) {
+        if (v.pn === null || v.pn === undefined) return String(v.w !== undefined && v.w !== null ? v.w : v.n);
+        return (v.w ? v.w : '') + '\\frac{' + v.pn + '}{' + v.d + '}';
+      },
+      /** '내 답' 을 글로(화면 읽기 프로그램 · 기록용): 1과 3/4, 7/4, 2 */
       say: function (v) {
         if (v.pn === null || v.pn === undefined) return v.w !== undefined && v.w !== null ? String(v.w) : v.n + '/' + v.d;
         return (v.w ? MH.josa(v.w, '과/와') + ' ' : '') + v.pn + '/' + v.d;
