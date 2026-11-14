@@ -55,6 +55,7 @@
     /* 분수. 값은 { n, d }(분자, 분모. 약분하지 않은 그대로 둘 수 있다. MH.F 로 만든 Fraction 도 된다).
        입력은 분자 칸 / 분모 칸, answer.whole 이 참이면 그 앞에 대분수의 자연수 칸. 판정에는 '자연수,분자,분모' 또는 '분자,분모' 로 넘어온다.
        answer.form: 'mixed' 대분수로 써야 함 · 'improper' 자연수 부분 없이 써야 함 · 없으면 값만 같으면 됨
+       answer.show: 'mixed' 이면 정답을 보여 줄 때만 대분수 꼴로 쓴다(답은 가분수로 써도 된다).
        answer.reduce: 'off' 이면 약분 안내를 하지 않는다(약분을 배우기 전 단원). 'require' 이면 기약분수로 써야 한다(덜 약분한 답은 다시 쓰게 한다). */
     fraction: {
       layout: 'fraction',
@@ -107,7 +108,7 @@
       tex: function (v, spec) {
         var m = this.split(v);
         if (v.d === 1 || m.r === 0) return String(m.w);
-        if (spec && spec.form === 'mixed' && m.w > 0) return m.w + '\\dfrac{' + m.r + '}{' + v.d + '}';
+        if (spec && (spec.form === 'mixed' || spec.show === 'mixed') && m.w > 0) return m.w + '\\dfrac{' + m.r + '}{' + v.d + '}';
         return '\\dfrac{' + v.n + '}{' + v.d + '}';
       },
       raw: function (v, spec) {
