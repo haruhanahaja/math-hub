@@ -154,7 +154,7 @@
   eq(says('A09.reduce', { b: 2, a: 1, g: 5, n: 5, d: 10 }).split(' | ')[1], '1과 2를 함께 나눌 수 있는 수는 1뿐이에요. 기약분수는 2분의 1이에요. [\\dfrac{5}{10} = \\dfrac{1}{2}]', '한 번에 끝나는 약분 풀이');
   eq(MH.types['A09.common'].prompt(c2.v).tex, '\\begin{aligned}\\dfrac{3}{4} &= \\dfrac{\\bigcirc}{\\triangle} \\\\[6pt] \\dfrac{5}{6} &= \\dfrac{\\square}{\\triangle}\\end{aligned}', '공통분모를 가린 문제');
   eq(MH.types['A09.common'].prompt({ q: 1, which: 0, b: 4, d: 6, a: 3, c: 5 }).tex, '\\begin{aligned}\\dfrac{3}{4} &= \\dfrac{\\square}{12} \\\\[6pt] \\dfrac{5}{6} &= \\dfrac{10}{12}\\end{aligned}', '공통분모를 보여 주는 문제');
-  eq(says('A09.common', c2.v), '4와 6의 최소공배수는 12예요. 이것이 가장 작은 공통분모예요. | 12 ÷ 6 = 2이니까 분모와 분자에 2를 곱해요. [\\dfrac{5}{6} = \\dfrac{5 \\times 2}{6 \\times 2} = \\dfrac{10}{12}] | □에 알맞은 수는 10이에요. 다른 분수는 12 ÷ 4 = 3을 곱해 12분의 9가 돼요. [\\begin{aligned}\\dfrac{3}{4} &= \\dfrac{9}{12} \\\\[6pt] \\dfrac{5}{6} &= \\dfrac{10}{12}\\end{aligned}]', '통분 풀이');
+  eq(says('A09.common', c2.v), '4와 6의 최소공배수는 12예요. 이것이 가장 작은 공통분모예요. | 12 ÷ 6 = 2니까 분모와 분자에 2를 곱해요. [\\dfrac{5}{6} = \\dfrac{5 \\times 2}{6 \\times 2} = \\dfrac{10}{12}] | □에 알맞은 수는 10이에요. 다른 분수는 12 ÷ 4 = 3을 곱해 12분의 9가 돼요. [\\begin{aligned}\\dfrac{3}{4} &= \\dfrac{9}{12} \\\\[6pt] \\dfrac{5}{6} &= \\dfrac{10}{12}\\end{aligned}]', '통분 풀이');
 
   var cmp = function (a, b, c, d) { return prob('A09.compare', { a: a, b: b, c: c, d: d }); };
   eq(cmp(3, 4, 5, 6).answer + cmp(5, 6, 3, 4).answer + cmp(2, 4, 3, 6).answer + cmp(3, 7, 5, 7).answer + cmp(2, 3, 2, 5).answer, '<>=<>', '크기 비교의 답');

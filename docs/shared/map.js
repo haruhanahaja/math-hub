@@ -27,7 +27,8 @@
     A08: ['A08.part', 'A08.line', 'A08.quotient', 'A08.to-mixed', 'A08.to-improper'],
     A09: ['A09.equal', 'A09.reduce', 'A09.common', 'A09.compare'],
     A10: ['A10.same', 'A10.add', 'A10.sub', 'A10.mixed-add', 'A10.mixed-sub'],
-    A11: ['A11.by-whole', 'A11.frac', 'A11.cancel', 'A11.mixed', 'A11.of']
+    A11: ['A11.by-whole', 'A11.frac', 'A11.cancel', 'A11.mixed', 'A11.of'],
+    A12: ['A12.reciprocal', 'A12.by-whole', 'A12.count', 'A12.frac', 'A12.mixed']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */

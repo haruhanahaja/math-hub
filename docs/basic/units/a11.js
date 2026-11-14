@@ -32,7 +32,7 @@
   var finish = function (out, n, d) {
     var g = gcd(n, d);
     if (g > 1) { out.push({ say: '분자 ' + josa(n, '과/와') + ' 분모 ' + josa(d, '을/를') + ' ' + josa(g, '으로/로') + ' 나눠 약분해요.', tex: frac(n, d) + ' = ' + frac(n / g, d / g) }); n /= g; d /= g; }
-    if (n > d) { var r = n % d, w = (n - r) / d; out.push({ say: '분자가 분모보다 커요. ' + n + ' ÷ ' + d + ' = ' + w + ' … ' + r + '이니까 대분수로 쓰면 ' + josa(w, '과/와') + ' ' + readJ(r, d, '이에요/예요') + '.', tex: frac(n, d) + ' = ' + T(w, r, d) }); }
+    if (n > d) { var r = n % d, w = (n - r) / d; out.push({ say: '분자가 분모보다 커요. ' + n + ' ÷ ' + d + ' = ' + w + ' … ' + josa(r, '이니까/니까') + ' 대분수로 쓰면 ' + josa(w, '과/와') + ' ' + readJ(r, d, '이에요/예요') + '.', tex: frac(n, d) + ' = ' + T(w, r, d) }); }
     out[out.length - 1].value = { n: n, d: d };
     return out;
   };

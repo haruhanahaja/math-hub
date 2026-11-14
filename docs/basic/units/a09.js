@@ -196,7 +196,7 @@
       var t = target(v), ans = t.n * t.m;
       return [
         { say: v.q === 1 ? '공통분모는 ' + josa(l, '이에요/예요') + '.' : josa(v.b, '과/와') + ' ' + v.d + '의 최소공배수는 ' + josa(l, '이에요/예요') + '. 이것이 가장 작은 공통분모예요.' },
-        { say: l + ' ÷ ' + t.d + ' = ' + t.m + '이니까 분모와 분자에 ' + josa(t.m, '을/를') + ' 곱해요.', tex: tex(t.n, t.d) + ' = ' + tex(t.n + ' \\times ' + t.m, t.d + ' \\times ' + t.m) + ' = ' + tex(ans, l) },
+        { say: l + ' ÷ ' + t.d + ' = ' + josa(t.m, '이니까/니까') + ' 분모와 분자에 ' + josa(t.m, '을/를') + ' 곱해요.', tex: tex(t.n, t.d) + ' = ' + tex(t.n + ' \\times ' + t.m, t.d + ' \\times ' + t.m) + ' = ' + tex(ans, l) },
         { say: '□에 알맞은 수는 ' + josa(ans, '이에요/예요') + '.' + (t.om === 1 ? ' 다른 분수는 분모가 이미 ' + l + '이라서 그대로예요.' : ' 다른 분수는 ' + l + ' ÷ ' + t.od + ' = ' + josa(t.om, '을/를') + ' 곱해 ' + readJ(t.on * t.om, l, '이/가') + ' 돼요.'), tex: twoLines(v, v.a * l / v.b, v.c * l / v.d, l), value: ans }
       ];
     },
