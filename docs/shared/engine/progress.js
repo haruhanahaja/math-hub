@@ -9,12 +9,14 @@
   var REVIEW_CAP = 10;                       /* 하루에 내는 복습 문제 수의 한도 */
   var MIX_EVERY = 5;                         /* 5문제에 1문제(20%)는 통과한 아래 단원에서 낸다 */
   var TEST_SIZE = 10;                        /* 바로 통과 시험의 문제 수 */
+  var MIN_SOLVED = 100, MIN_FROM = 'A08';    /* A08 부터는 그 단원 문제를 100문제 이상 풀어야 통과(쉬운 단계부터 천천히 올라간다) */
 
   function blank() {
     return { v: 1, units: {}, types: {}, reviews: [], days: {}, current: null, test: null, settings: { goal: 15, timer: false } };
   }
 
   var P = {
+    MIN_SOLVED: MIN_SOLVED, MIN_FROM: MIN_FROM,
     WINDOW: WINDOW, NEED: NEED, REVIEW_DAYS: REVIEW_DAYS, REVIEW_CAP: REVIEW_CAP, MIX_EVERY: MIX_EVERY, TEST_SIZE: TEST_SIZE,
     s: blank(),
 
@@ -49,6 +51,20 @@
       if (P.passed(id)) return 'passed';
       return u.requires.every(P.passed) ? 'open' : 'locked';
     },
+    /** 통과하려면 그 단원에서 풀어야 하는 최소 문제 수. 단원 지도에서 MIN_FROM 과 그 뒤의 단원은 MIN_SOLVED, 앞 단원은 0. */
+    minSolved: function (id) {
+      var ids = MH.MAP.units.map(function (u) { return u.id; }), from = ids.indexOf(P.MIN_FROM), at = ids.indexOf(id);
+      return from >= 0 && at >= from ? P.MIN_SOLVED : 0;
+    },
+    /** 한 단계에서 맞혀야 하는 문제 수. 최소 문제 수가 있는 단원은 그 수를 (유형 × 단계) 칸에 고르게 나눠, 쉬운 단계부터 천천히 올라가게 한다. */
+    stay: function (id) {
+      var min = P.minSolved(id), slots = 0;
+      if (!min) return 2;
+      MH.MAP.unit(id).types.forEach(function (t) { slots += MH.lastLevel(t) + 1; });
+      return Math.max(2, Math.floor(min / slots));
+    },
+    /** 바로 통과 시험을 볼 수 있는 단원인가(최소 문제 수가 있는 단원은 시험으로 건너뛸 수 없다) */
+    testAllowed: function (id) { return !P.minSolved(id); },
     /** 최근 10문제 중 힌트 없이 맞힌 수 */
     cleanCount: function (id) { return (P.unit(id).recent.match(/1/g) || []).length; },
     /** 그 단원의 모든 유형이 마지막 단계에 올라와 있는가 */
@@ -138,13 +154,16 @@
         u.n++;
         /* 통과 기준에는 마지막 단계 문제만 넣는다. 1 힌트 없이 정답 · h 힌트 보고 정답 · 0 오답 */
         if (task.level >= last) u.recent = (u.recent + (correct ? (res.hinted ? 'h' : '1') : '0')).slice(-WINDOW);
-        /* 단계: 연속 2번 맞히면 한 칸 위로, 연속 2번 틀리면 한 칸 아래로 */
+        /* 단계: 연속 2번 맞히면 한 칸 위로, 연속 2번 틀리면 한 칸 아래로.
+           최소 문제 수가 있는 단원은 그 단계에서 stay 문제를 맞힌 뒤에야 올라간다(at = 지금 단계에서 맞힌 수). */
         if (task.level === t.level) {
+          var stay = P.stay(task.unit);
+          if (correct) t.at = (t.at || 0) + 1;
           t.run = correct ? Math.max(t.run, 0) + 1 : Math.min(t.run, 0) - 1;
-          if (t.run >= 2) { if (t.level < last) t.level++; t.run = 0; }
-          else if (t.run <= -2) { if (t.level > 0) t.level--; t.run = 0; }
+          if (t.run >= 2 && (stay <= 2 || t.at >= stay)) { if (t.level < last) { t.level++; t.at = 0; } t.run = 0; }
+          else if (t.run <= -2) { if (t.level > 0) { t.level--; t.at = 0; } t.run = 0; }
         }
-        if (!u.passed && P.allAtLast(task.unit) && P.cleanCount(task.unit) >= NEED) { u.passed = today; out.passedNow = true; }
+        if (!u.passed && u.n >= P.minSolved(task.unit) && P.allAtLast(task.unit) && P.cleanCount(task.unit) >= NEED) { u.passed = today; out.passedNow = true; }
       }
 
       /* 복습 예약: 유형마다 한 줄 */

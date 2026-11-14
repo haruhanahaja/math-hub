@@ -95,6 +95,38 @@
   eq(P.s.reviews.length, 1, '풀이를 본 문제는 복습에 넣음');
   done('통과 기준');
 
+  group('최소 문제 수가 있는 단원 (A08 부터 100문제, 쉬운 단계부터)');
+  P.reset();
+  eq(P.minSolved('U1') + ' ' + P.stay('U1') + ' ' + P.testAllowed('U1'), '0 2 true', '기준 단원이 지도에 없으면 최소 문제 수 없음');
+  P.MIN_FROM = 'U1'; P.MIN_SOLVED = 20;
+  eq(P.minSolved('U0') + ' ' + P.minSolved('U1') + ' ' + P.minSolved('U2'), '0 20 20', '기준 단원과 그 뒤의 단원에만 적용');
+  eq(P.stay('U1'), 6, '한 단계에 머무는 문제 수 = 20 ÷ (유형 a 2단계 + 유형 b 1단계)');
+  eq(P.testAllowed('U0') + ' ' + P.testAllowed('U1'), 'true false', '최소 문제 수가 있는 단원은 바로 통과 시험이 없음');
+  for (i = 0; i < 5; i++) P.record(study('U1.a', 0), GOOD, 100);
+  eq(P.type('U1.a').level, 0, '쉬운 단계에서 5문제를 맞혀도 아직 오르지 않음');
+  P.record(study('U1.a', 0), GOOD, 100);
+  eq(P.type('U1.a').level + ' ' + P.type('U1.a').at, '1 0', '6문제를 맞히면 한 단계 위로, 맞힌 수는 다시 0부터');
+  P.record(study('U1.a', 1), BAD, 100); P.record(study('U1.a', 1), BAD, 100);
+  eq(P.type('U1.a').level, 0, '연속 2번 틀리면 한 단계 아래로(그대로)');
+  for (i = 0; i < 5; i++) P.record(study('U1.a', 0), GOOD, 100);
+  P.record(study('U1.a', 0), BAD, 100); P.record(study('U1.a', 0), GOOD, 100);
+  eq(P.type('U1.a').level, 0, '6문제를 맞혔어도 마지막 두 문제가 연속 정답이 아니면 오르지 않음');
+  P.record(study('U1.a', 0), GOOD, 100);
+  eq(P.type('U1.a').level, 1, '연속 2번 맞히면 오름');
+  P.reset();
+  P.type('U1.a').level = 1;
+  for (i = 0; i < 19; i++) ok(!P.record(study('U1.b', 0), GOOD, 100).passedNow, '20문제를 풀기 전에는 9문제를 맞혀도 통과하지 못함');
+  eq(P.cleanCount('U1') + ' ' + P.status('U1'), '10 open', '19문제째: 최근 10문제는 모두 정답이지만 아직 열림');
+  ok(P.record(study('U1.b', 0), GOOD, 100).passedNow, '20문제째에 통과');
+  P.reset();
+  eq(passByStudy('U1', 100), 20, '모두 맞히면 정확히 최소 문제 수에서 통과');
+  P.reset();
+  var levels = [];
+  for (i = 0; i < 20; i++) { var tk = P.nextTask(100, 'U1', rnd); if (tk.type === 'U1.a') levels.push(tk.level); P.record(tk, GOOD, 100); }
+  eq(levels.join(''), '0000001111', '유형 a 는 쉬운 단계 6문제 → 마지막 단계');
+  P.MIN_FROM = 'A08'; P.MIN_SOLVED = 100;
+  done('최소 문제 수 · 단계별로 머무는 문제 수');
+
   group('복습: 1일 · 3일 · 7일');
   P.reset();
   P.record(study('U1.b', 0), BAD, 100);
@@ -199,4 +231,21 @@
   done('기록');
 
   MH.MAP = realMap; MH.types = realTypes; P.reset();
+
+  group('실제 단원 지도: A08 부터 100문제');
+  var line = [];
+  MH.MAP.units.filter(function (u) { return u.ready; }).forEach(function (u) {
+    P.reset();
+    var min = P.minSolved(u.id), byLevel = [0, 0, 0, 0, 0], count = -1;
+    eq(min, u.id >= 'A08' ? 100 : 0, u.id + ' 의 최소 문제 수');
+    for (var k = 1; k <= 400 && count < 0; k++) { var t = P.nextTask(100, u.id, rnd); byLevel[t.level]++; if (P.record(t, GOOD, 100).passedNow) count = k; }
+    if (min) {
+      eq(count, 100, u.id + ': 모두 맞히면 100문제째에 통과');
+      ok(byLevel[0] >= 20 && byLevel[0] <= 50 && byLevel[1] >= 20, u.id + ': 쉬운 단계에만 몰리지 않고 단계마다 고르게 풂 ' + byLevel.join('/'));
+    } else ok(count > 0 && count < 40, u.id + ': 앞 단원은 예전 기준 그대로 ' + count);
+    line.push(u.id + ' ' + count + '(' + byLevel.filter(function (x) { return x; }).join('/') + ')');
+  });
+  print('    통과까지 푼 문제 수(단계별): ' + line.join(' · '));
+  done('단원마다 통과까지의 문제 수');
+  P.reset();
 })();

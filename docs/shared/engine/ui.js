@@ -87,8 +87,10 @@
     } else if (st !== 'soon') {
       var rec = P.unit(id).recent, dots = '';
       for (var i = 0; i < P.WINDOW; i++) { var c = rec.charAt(rec.length - P.WINDOW + i); dots += '<i class="' + (c ? 'd' + c : '') + '"></i>'; }
-      var ready = P.allAtLast(id);
-      body = '<div class="card"><h3>통과 기준 — 최근 10문제 중 9문제를 힌트 없이 정답</h3><div class="dots" role="img" aria-label="최근 10문제 중 ' + P.cleanCount(id) + '문제 정답">' + dots + '</div>'
+      var ready = P.allAtLast(id), min = P.minSolved(id), solved = P.unit(id).n;
+      body = '<div class="card"><h3>통과 기준 — ' + (min ? min + '문제 이상 풀고, ' : '') + '최근 10문제 중 9문제를 힌트 없이 정답</h3>'
+        + (min ? '<p class="note" style="margin-top:0">푼 문제 <b>' + solved + '</b> / ' + min + (st !== 'passed' && solved < min ? ' · 쉬운 단계부터 차례로 올라가요.' : '') + '</p>' : '')
+        + '<div class="dots" role="img" aria-label="최근 10문제 중 ' + P.cleanCount(id) + '문제 정답">' + dots + '</div>'
         + '<p class="note">' + (st === 'passed' ? dateOf(P.unit(id).passed) + '에 통과했어요.'
           : ready ? '지금 ' + P.cleanCount(id) + '문제예요. 노란색은 힌트를 보고 맞힌 문제예요.'
             : '모든 유형이 마지막 단계에 올라오면 그때부터 세요. 지금은 연습 중이에요.') + '</p></div>'
@@ -98,7 +100,7 @@
           return '<li><span class="txt">' + esc(def.title) + '<small>' + esc(def.levels[ts.level].name) + ' · ' + ts.n + '문제 풀었어요</small></span><span class="lv" aria-label="단계 ' + (ts.level + 1) + ' / ' + def.levels.length + '">' + lv + '</span></li>';
         }).join('') + '</ul></div>'
         + '<div class="actions"><a class="btn" href="#study/' + id + '">' + (st === 'passed' ? '계속 연습하기' : P.unit(id).n ? '이어서 공부하기' : '공부하기') + '</a>'
-        + (st === 'open' ? '<a class="btn ghost" href="#test/' + id + '">' + (P.s.test && P.s.test.unit === id ? '시험 이어 하기 (' + (P.s.test.i + 1) + ' / ' + P.s.test.items.length + ')' : '바로 통과 시험') + '</a>'
+        + (st === 'open' && P.testAllowed(id) ? '<a class="btn ghost" href="#test/' + id + '">' + (P.s.test && P.s.test.unit === id ? '시험 이어 하기 (' + (P.s.test.i + 1) + ' / ' + P.s.test.items.length + ')' : '바로 통과 시험') + '</a>'
           + '<p class="note">이미 아는 내용이면 10문제로 바로 통과할 수 있어요. 힌트와 풀이 없이 9문제를 맞히면 돼요.</p>' : '') + '</div>';
     }
     root.innerHTML = '<div class="page"><header class="bar"><a class="icon-btn" href="#" aria-label="단원 목록으로">' + ic('back') + '</a><h1>' + MH.MAP.stage(STAGE).name + '</h1></header>'
@@ -185,7 +187,7 @@
     var h = '';
     if (out.passedNow) {
       var u = MH.MAP.unit(S.task.unit);
-      h += msg('star', esc(unitLabel(u)) + ' 통과', '<p>최근 10문제 중 9문제를 힌트 없이 맞혔어요.' + afterPass(u.id) + '</p>');
+      h += msg('star', esc(unitLabel(u)) + ' 통과', '<p>' + (P.minSolved(u.id) ? P.minSolved(u.id) + '문제 이상 풀고, ' : '') + '최근 10문제 중 9문제를 힌트 없이 맞혔어요.' + afterPass(u.id) + '</p>');
     }
     if (out.goalNow) h += msg('star', '오늘 목표 ' + P.s.settings.goal + '문제를 채웠어요', '<p>여기서 멈춰도 좋아요. 더 풀어도 괜찮아요.</p>');
     return h;
@@ -372,7 +374,7 @@
 
   /* ── 바로 통과 시험 ──────────────────────────────────── */
   function openTest(id) {
-    if (P.status(id) !== 'open') return go('#unit/' + id);
+    if (P.status(id) !== 'open' || !P.testAllowed(id)) return go('#unit/' + id);
     var T = P.s.test;
     if (!T || T.unit !== id || T.items.some(function (x) { return !MH.types[x.type]; })) { T = P.startTest(id, rnd); P.save(); }
     var item = T.items[T.i];
