@@ -29,6 +29,7 @@ load('tests/units/a03.test.js');
 load('tests/units/a04.test.js');
 load('tests/units/a05.test.js');
 load('tests/units/a06.test.js');
+load('tests/units/a07.test.js');
 
 print('\n' + (T.fail ? '실패 ' + T.fail + '개, ' : '') + '통과 ' + T.pass + '개');
 if (T.fail) throw new Error('테스트 실패');
