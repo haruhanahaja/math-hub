@@ -44,7 +44,7 @@
   - `docs/shared/map.js` 단원 지도. 단원을 만들면 `READY` 에 유형 목록을 적는다.
   - `docs/shared/engine/` 공통 엔진: `rng.js` `num.js` `answer.js` `types.js` `progress.js`(화면 없이 돈다) + `ui.js`(화면).
   - `docs/<구간 key>/` 구간별 앱(basic, middle, common, algebra, calculus, stats). `index.html` 은 틀뿐이고, 단원은 `units/<소문자 id>.js` 하나씩.
-  - `docs/shared/vendor/` 외부 라이브러리(KaTeX). CDN 을 쓰지 않고 함께 올린다(오프라인 동작).
+  - `docs/shared/vendor/` 외부 라이브러리(KaTeX, fraction.js). CDN 을 쓰지 않고 함께 올린다(오프라인 동작). 분수 계산은 `MH.F(분자, 분모)` 로 한다.
   - `docs/sw.js` 오프라인용 서비스워커. `docs/` 안의 파일을 고쳤으면 커밋 전에 `python3 tools/build_sw.py` 를 실행한다.
 - localStorage 키는 모두 `mathhub.` 으로 시작한다(`mathhub.progress` 학습 기록, `mathhub.theme` 테마).
 - `tools/` 개발용 스크립트(사이트에 올라가지 않음). 아이콘: `python3 tools/build_icons.py`
@@ -53,5 +53,6 @@
 
 ## 단원을 만들 때
 - 순서: ① `docs/<구간>/units/<id>.js` 에 유형 템플릿 ② `docs/shared/map.js` 의 `READY` ③ `tests/units/<id>.test.js` + `tests/run.js` 에 한 줄 ④ `sh tests/run.sh` ⑤ `python3 tools/build_sw.py` ⑥ 커밋.
-- 새 답 형식(분수, 소수 …)이 필요하면 `docs/shared/engine/answer.js` 의 `MH.kinds` 와 `ui.js` 의 입력 칸을 함께 넓힌다.
+- 새 답 형식(소수 …)이 필요하면 `docs/shared/engine/answer.js` 의 `MH.kinds` 와 `ui.js` 의 입력 칸을 함께 넓힌다. 지금 있는 형식: `int`, `quotient-remainder`, `fraction`.
+- 그림이 필요한 문제는 `prompt` 가 `figure` 를 돌려준다(띠 `bar`, 수직선 `line`). 새 그림은 `ui.js` 의 `MH.figure` 에 추가한다.
 - `plan/roadmap.md` 에 `확인` 이라고 적은 네 곳(C12 외분점 제외, F01 원순열 제외, C11 행렬 추가, F09 모비율 추정 추가)은 해당 단원을 만들 때 2022 개정 교육과정 문서로 반드시 확인한다. 기억에 의존하지 않는다.

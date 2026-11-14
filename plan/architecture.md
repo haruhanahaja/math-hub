@@ -97,7 +97,7 @@ MH.defineType({
 function sum(v) { return F(v.a, v.b).add(F(v.c, v.d)); }
 ```
 
-`int`, `pick`, `F`, `lcm`, `coprime` 은 엔진이 주는 도구다(`F` 는 분수가 처음 나오는 A08에서 fraction.js 와 함께 추가한다). 실제로 돌아가는 예는 `docs/basic/units/a01.js` 에 있다. 템플릿 안에서는 `Math.random` 과 소수점 계산(`0.1 + 0.2` 같은 것)을 쓰지 않는다.
+`int`, `pick`, `F`, `lcm`, `coprime` 은 엔진이 주는 도구다(`F` 는 fraction.js 로 만든 정확한 분수다: `MH.F(1, 3).add(MH.F(1, 6))`). `prompt` 는 `{ tex, text }` 말고도 그림 `figure` 를 돌려줄 수 있다: 띠 `{ type: 'bar', parts, filled }`, 수직선 `{ type: 'line', max, parts, mark }`. 실제로 돌아가는 예는 `docs/basic/units/a01.js` 에 있다. 템플릿 안에서는 `Math.random` 과 소수점 계산(`0.1 + 0.2` 같은 것)을 쓰지 않는다.
 
 ### 1.4 무작위 숫자와 조건
 
@@ -115,7 +115,7 @@ function sum(v) { return F(v.a, v.b).add(F(v.c, v.d)); }
 |---|---|---|---|
 | `int` | 숫자 키패드. `suffix` 를 적으면 답 칸 옆에 단위(쪽, 개 …)를 보여 준다. | 앞에 0 을 붙인 수 | A (만듦) |
 | `quotient-remainder` | 몫 칸 + 나머지 칸(`fields`). 값은 `{ q, r }`, 판정에는 `'몫,나머지'` 문자열로 넘긴다. 한 칸을 채우고 확인을 누르면 빈칸으로 옮겨 간다. | 앞에 0 을 붙인 수 | A05 (만듦) |
-| `fraction` | 분자 칸 / 분모 칸 (+ 대분수의 자연수 칸) | 약분 전 분수, 대분수 ↔ 가분수, 소수 | A |
+| `fraction` | 분자 칸 / 분모 칸. `whole: true` 나 `form: 'mixed'` 이면 그 앞에 대분수의 자연수 칸. 값은 `{ n, d }`(약분하지 않은 그대로 둘 수 있다. `MH.F` 로 만든 분수도 된다). `form: 'mixed'`(대분수로) · `'improper'`(가분수로)를 적으면, 값은 같은데 꼴이 다른 답은 기록하지 않고 다시 쓰게 한다. `reduce: 'off'` 는 약분 안내를 끈다(약분을 배우기 전인 A08). | 약분 전 분수, 대분수 ↔ 가분수, 소수 | A08 (만듦) |
 | `decimal` | 숫자 키패드 + 소수점 | 값이 같은 분수, 끝자리 0 (0.50) | A |
 | `rational` | 위와 같고 부호 키 추가 | 위와 같음 | B |
 | `expr` | 문자 키패드 (x, 지수, 괄호) | 전개했을 때 같은 다항식 | B |
@@ -317,10 +317,11 @@ docs/                          사이트 (GitHub Pages)
     hub.js                     테마, 날짜 번호, 서비스워커 등록
     map.js                     단원 지도 (2장)
     app.css                    영역 앱 공통 스타일
-    vendor/katex/              KaTeX (CDN 대신 함께 올려 오프라인에서도 동작). fraction.js 는 A08에서 추가.
+    vendor/katex/              KaTeX (CDN 대신 함께 올려 오프라인에서도 동작)
+    vendor/fraction/           fraction.js 4.3.7 (MIT). 정확한 분수 계산
     engine/
       rng.js                   씨앗 난수, int · pick
-      num.js                   gcd · lcm · digits · josa (분수 도구 F 는 A08에서 추가)
+      num.js                   gcd · lcm · digits · josa · F(분수)
       answer.js                답 형식별 읽기 · 비교 · 실수 찾기 (1.5절)
       types.js                 MH.defineType, 문제 만들기 (1장)
       progress.js              저장, 통과, 복습, 섞기, 바로 통과 시험 (3장)

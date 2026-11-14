@@ -103,6 +103,35 @@
       + '<section class="u-head"><span class="chip' + (st === 'passed' ? ' ok' : st === 'open' ? ' on' : '') + '">' + u.id + ' · ' + STATUS[st] + '</span><h2>' + esc(u.title) + '</h2><p>' + esc(u.summary) + '</p></section>' + body + '</div>';
   }
 
+  /* ── 그림 ─────────────────────────────────────────────
+     문제의 prompt 가 figure 를 주면 식 · 글 아래에 그린다.
+     { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
+     { type: 'line', max: 오른쪽 끝의 자연수, parts: 1 을 나눈 칸 수, mark: 0 에서 몇 번째 눈금인가 } */
+  MH.figure = function (f) {
+    var h = '', i, j;
+    if (f.type === 'bar') {
+      var bars = Math.max(1, Math.ceil(f.filled / f.parts));
+      for (i = 0; i < bars; i++) {
+        h += '<div class="bar-fig" style="grid-template-columns:repeat(' + f.parts + ',1fr)">';
+        for (j = 0; j < f.parts; j++) h += '<i' + (i * f.parts + j < f.filled ? ' class="on"' : '') + '></i>';
+        h += '</div>';
+      }
+      return '<div class="figure" role="img" aria-label="똑같이 ' + f.parts + '칸으로 나눈 띠 ' + bars + '개에서 ' + f.filled + '칸을 색칠한 그림">' + h + '</div>';
+    }
+    if (f.type === 'line') {
+      var W = 320, L = 18, R = W - 18, n = f.max * f.parts, x = function (k) { return Math.round((L + (R - L) * k / n) * 10) / 10; };
+      h = '<line x1="' + (L - 8) + '" y1="34" x2="' + (R + 8) + '" y2="34" class="ax"/>';
+      for (i = 0; i <= n; i++) {
+        var big = i % f.parts === 0;
+        h += '<line x1="' + x(i) + '" y1="' + (big ? 24 : 28) + '" x2="' + x(i) + '" y2="' + (big ? 44 : 40) + '" class="ax"/>';
+        if (big) h += '<text x="' + x(i) + '" y="62" text-anchor="middle">' + i / f.parts + '</text>';
+      }
+      h += '<path d="M' + x(f.mark) + ' 22 l-6 -10 h12 z" class="mk"/><text x="' + x(f.mark) + '" y="9" text-anchor="middle" class="mk">□</text>';
+      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="0부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었고, 0에서 ' + f.mark + '번째 눈금에 □ 표시가 있다">' + h + '</svg></div>';
+    }
+    return '';
+  };
+
   /* ── 문제 화면 ─────────────────────────────────────────
      S.phase: 'answer' 첫 답을 기다림 · 'retry' 틀려서 한 번 더 · 'done' 끝(다음 문제로)
      기록은 첫 답(또는 풀이 보기)에서 한 번만 한다. */
@@ -120,19 +149,25 @@
     return task;
   }
   /* 답 칸: 보통은 하나, 답 형식에 fields 가 있으면(몫 · 나머지) 여러 칸. 판정에는 칸들을 ',' 로 이어서 넘긴다. */
-  function blank(kind) { return (kind.fields || ['']).map(function () { return ''; }); }
+  function labelsOf(def) { var kind = MH.kinds[def.answer.kind]; return kind.fieldsOf ? kind.fieldsOf(def.answer) : kind.fields || ['내 답']; }
+  function blank() { return S.labels.map(function () { return ''; }); }
+  function startAt() { return S.kind.start ? S.kind.start(S.def.answer) : 0; }
   function rawInput() { return S.fields.join(','); }
   function syncBoxes() {
     S.fields.forEach(function (f, i) {
       var box = document.getElementById('ans' + i);
       if (box) { box.textContent = f; box.classList.toggle('live', i === S.at); }
     });
+    /* 칸이 여러 개면 지금 쓰는 칸이 화면 밖에 있을 수 있다(그림이 큰 문제의 분모 칸) */
+    var live = document.getElementById('ans' + S.at);
+    if (S.fields.length > 1 && live && live.scrollIntoView) live.scrollIntoView({ block: 'nearest' });
   }
   function setProblem(task, isTest) {
     var problem = MH.makeProblem(task.type, task.level, task.seed);
     var kind = MH.kinds[MH.types[task.type].answer.kind];
-    S = { test: isTest, task: task, problem: problem, def: MH.types[task.type], kind: kind, fields: blank(kind), at: 0, phase: 'answer', hints: task.hints || 0,
+    S = { test: isTest, task: task, problem: problem, def: MH.types[task.type], kind: kind, labels: labelsOf(MH.types[task.type]), fields: [], at: 0, phase: 'answer', hints: task.hints || 0,
       msgs: [], showSteps: false, ask: false, boxClass: '', final: null, testResult: null };
+    S.fields = blank(); S.at = startAt();
     drawSolve(true);
   }
 
@@ -159,16 +194,21 @@
     var mine = S;
     autoTimer = setTimeout(function () { if (S === mine && S.phase === 'done') next(); }, AUTO_NEXT);
   }
-  function answerTex() { return MH.kinds[S.def.answer.kind].tex(S.problem.answer); }
+  function answerTex() { return S.kind.tex(S.problem.answer, S.def.answer); }
   function suffix() { return S.def.answer.suffix ? S.def.answer.suffix(S.problem.v, S.problem.ctx) : ''; }
 
   function submit() {
     if (S.phase === 'done') return next();
     /* 여러 칸일 때: 지금 칸은 채웠고 빈칸이 남았으면 '확인'은 그 빈칸으로 옮겨 가는 뜻 */
-    var empty = S.fields.indexOf('');
-    if (S.fields.length > 1 && S.fields[S.at] !== '' && empty >= 0) { S.at = empty; return syncBoxes(); }
+    var to = S.kind.next ? S.kind.next(S.fields, S.at) : -1;
+    if (to >= 0) { S.at = to; return syncBoxes(); }
     var j = MH.judge(S.problem, rawInput()), t = today();
-    if (j.verdict === 'invalid') { S.boxClass = 'shake'; drawSolve(false); S.boxClass = ''; return; }
+    if (j.verdict === 'invalid') {
+      /* 읽을 수 없는 답은 흔들기만 한다. 값은 맞는데 꼴이 다른 답(note)은 까닭을 알려 주고 다시 쓰게 한다. 어느 쪽도 기록하지 않는다. */
+      if (j.note) { S.redo = j.note; S.fields = blank(); S.at = startAt(); return drawSolve(true); }
+      S.boxClass = 'shake'; drawSolve(false); S.boxClass = ''; return;
+    }
+    S.redo = null;
     var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + esc(S.kind.say(j.value)) + esc(suffix()) + '</p>';
     var explain = j.mistake ? '<p>' + esc(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
 
@@ -193,7 +233,7 @@
         if (!out.passedNow && !out.goalNow && !j.note) autoNext();
         return;
       } else {
-        S.phase = 'retry'; S.fields = blank(S.kind); S.at = 0; S.ask = false;
+        S.phase = 'retry'; S.fields = blank(); S.at = startAt(); S.ask = false;
         S.msgs = [msg('bad', '다시 볼까요?', mine + explain + '<p>한 번 더 풀어 볼 수 있어요. 이 유형은 내일 복습에 다시 나와요.</p>'), extras(out)];
       }
       return drawSolve(true);
@@ -229,7 +269,8 @@
       S.msgs.push(msg('', '정답은 ' + tex(answerTex()) + esc(suffix()) + ' 이에요'));
     }
     S.phase = 'done'; S.showSteps = true;
-    if (S.final === null) S.final = blank(S.kind);
+    if (S.final === null) S.final = blank();
+    S.redo = null;
     drawSolve(true);
   }
   function next() {
@@ -265,6 +306,7 @@
     }
     var hints = def.hints(S.problem.v, S.problem.ctx), fb = '';
     for (var h = 0; h < S.hints; h++) fb += '<div class="msg hint"><b>힌트 ' + (h + 1) + '</b><p>' + esc(hints[h]) + '</p></div>';
+    if (S.redo && !done) fb += msg('hint', '다시 써 볼까요?', '<p>' + esc(S.redo) + '</p>');
     fb += S.msgs.join('');
     if (S.showSteps) fb += stepsHtml();
 
@@ -284,27 +326,37 @@
       keys += '<button class="k-back" data-key="back" aria-label="지우기">' + ic('del') + '</button><button data-key="0">0</button><button class="k-ok" data-act="submit">확인</button>';
       pad = tools + '<div class="keys">' + keys + '</div>';
     }
-    var sfx = suffix(), multi = S.fields.length > 1;
+    var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
-      var label = S.kind.fields ? S.kind.fields[i] : '내 답';
+      var label = S.labels[i];
       var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '">' + esc(done ? S.final[i] : f) + '</span>';
-      return multi ? '<span class="field"><small>' + label + '</small>' + box + '</span>' : box;
-    }).join('');
+      return multi && !frac ? '<span class="field"><small>' + label + '</small>' + box + '</span>' : box;
+    });
+    /* 분수: (자연수 칸) + 분자 칸 / 가로줄 / 분모 칸 */
+    if (frac) { var k = boxes.length; boxes = (k === 3 ? boxes[0] : '') + '<span class="frac-in">' + boxes[k - 2] + '<i></i>' + boxes[k - 1] + '</span>'; }
+    else boxes = boxes.join('');
     root.innerHTML = '<div class="solve">'
       + '<header class="bar"><a class="icon-btn" href="#unit/' + task.unit + '" aria-label="나가기">' + ic('close') + '</a><span class="mid">' + esc(head) + '</span><span class="count">' + count + '</span></header>'
       + '<div class="track"><i style="width:' + pct + '%"></i></div>'
       + '<main class="q" id="q"><div class="q-tag">' + tag + '</div>'
       + (pr.tex ? '<div class="q-tex">' + tex(pr.tex, false) + '</div>' : '')
       + (pr.text ? '<p class="q-text">' + esc(pr.text) + '</p>' : '')
-      + '<div class="answer' + (multi ? ' multi' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
+      + (pr.figure ? MH.figure(pr.figure) : '')
+      + '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
       + '<div class="fb" id="fb" aria-live="polite">' + fb + '</div></main>'
       + '<footer class="pad">' + pad + '</footer></div>';
     if (scroll) {
       var q = document.getElementById('q'), f = document.getElementById('fb');
       /* 풀이는 풀이의 첫 줄부터, 판정 결과는 답 칸과 함께, 힌트는 가려져 있을 때만 보이게 민다 */
       if (S.showSteps) q.scrollTop = Math.max(0, f.lastElementChild.offsetTop - q.offsetTop - 12);
-      else if (S.msgs.length) { q.scrollTop = 0; var m = f.querySelector('.msg.good, .msg.bad, .msg.star'); if (m && m.scrollIntoView) m.scrollIntoView({ block: 'nearest' }); }
-      else if (S.hints && f.lastElementChild.scrollIntoView) f.lastElementChild.scrollIntoView({ block: 'nearest' });
+      else if (S.msgs.length) {
+        q.scrollTop = 0;
+        var m = f.querySelector('.msg.good, .msg.bad, .msg.star');
+        /* 다시 풀 때는 문제가 보여야 한다: 설명은 첫머리(약 84px)만 보이게 하고 문제를 되도록 남긴다 */
+        if (m && S.phase === 'retry') q.scrollTop = Math.max(0, m.offsetTop - q.offsetTop - (q.clientHeight - 84));
+        else if (m && m.scrollIntoView) m.scrollIntoView({ block: 'nearest' });
+      }
+      else if ((S.hints || S.redo) && f.lastElementChild.scrollIntoView) f.lastElementChild.scrollIntoView({ block: 'nearest' });
     }
   }
 

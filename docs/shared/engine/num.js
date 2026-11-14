@@ -1,5 +1,5 @@
-/* 숫자 · 낱말 도구. 모든 계산은 정수로만 한다(소수점 계산 금지).
-   분수 도구(F)는 분수가 처음 나오는 단원(A08)에서 fraction.js 와 함께 추가한다. */
+/* 숫자 · 낱말 도구. 모든 계산은 정수와 분수로만 한다(소수점 계산 금지).
+   분수는 fraction.js(shared/vendor/fraction) 로 정확하게 계산한다. */
 (function () {
   'use strict';
   var MH = globalThis.MH = globalThis.MH || {};
@@ -7,6 +7,9 @@
   MH.gcd = function (a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = a % b; a = b; b = t; } return a; };
   MH.lcm = function (a, b) { return a / MH.gcd(a, b) * b; };
   MH.coprime = function (a, b) { return MH.gcd(a, b) === 1; };
+
+  /** 분수. F(3, 4) → 3/4 (fraction.js 의 Fraction: add · sub · mul · div · equals · compare, 값은 늘 기약분수로 n / d 에 들어 있다) */
+  MH.F = function (n, d) { return new globalThis.Fraction(n, d === undefined ? 1 : d); };
 
   /** 자연수의 자릿수 목록. 일의 자리가 맨 앞: digits(347) → [7, 4, 3] */
   MH.digits = function (n) {

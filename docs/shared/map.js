@@ -23,7 +23,8 @@
     A04: ['A04.low', 'A04.high', 'A04.relation', 'A04.word'],
     A05: ['A05.basic', 'A05.long', 'A05.two', 'A05.check', 'A05.word'],
     A06: ['A06.left', 'A06.muldiv', 'A06.paren', 'A06.mixed', 'A06.word'],
-    A07: ['A07.divisors', 'A07.multiples', 'A07.gcd', 'A07.lcm', 'A07.word']
+    A07: ['A07.divisors', 'A07.multiples', 'A07.gcd', 'A07.lcm', 'A07.word'],
+    A08: ['A08.part', 'A08.line', 'A08.quotient', 'A08.to-mixed', 'A08.to-improper']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */

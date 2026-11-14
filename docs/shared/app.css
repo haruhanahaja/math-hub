@@ -90,6 +90,11 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .ans-box.good { box-shadow: inset 0 0 0 2px var(--ok); color: var(--ok); } .ans-box.bad { box-shadow: inset 0 0 0 2px var(--bad); color: var(--bad); }
 .ans-box.shake { animation: shake .3s; }
 .answer.multi { gap: 14px; align-items: flex-end; } .answer.multi .ans-box { min-width: 112px; } .answer .field { display: flex; flex-direction: column; align-items: center; gap: 6px; } .answer .field small { font-size: 13px; font-weight: 650; color: var(--ink-2); }
+.answer.frac { gap: 12px; margin-top: 16px; } .answer.frac .ans-box { min-width: 96px; height: 48px; font-size: 26px; }
+.frac-in { display: flex; flex-direction: column; align-items: stretch; gap: 6px; } .frac-in > i { height: 3px; border-radius: 2px; background: var(--ink); margin: 0 -6px; }
+.figure { margin-top: 14px; display: grid; gap: 6px; }
+.bar-fig { display: grid; gap: 3px; height: 32px; } .bar-fig i { border-radius: 5px; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line); } .bar-fig i.on { background: var(--brand); box-shadow: none; }
+.line-fig { width: 100%; height: auto; display: block; } .line-fig .ax { stroke: var(--ink-2); stroke-width: 1.5; } .line-fig text { fill: var(--ink-2); font-size: 13px; font-weight: 600; } .line-fig .mk { fill: var(--brand); stroke: none; font-size: 14px; }
 .answer .suffix { font-size: 20px; font-weight: 650; color: var(--ink-2); }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
@@ -119,4 +124,5 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .pad .sub-link { display: block; text-align: center; padding: 12px 0 2px; font-size: 13.5px; color: var(--ink-2); font-weight: 600; }
 
 @media (min-width: 720px) { .solve { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
+@media (max-height: 680px) { .keys button { height: 46px; } .keys { gap: 6px; } }
 @media (prefers-reduced-motion: reduce) { .ans-box.live::after, .ans-box.shake { animation: none; } }
