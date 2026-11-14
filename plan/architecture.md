@@ -122,7 +122,7 @@ function sum(v) { return F(v.a, v.b).add(F(v.c, v.d)); }
 | `surd` | 근호 키 | 값이 같은 표현(√8 = 2√2, 유리화 전) | B |
 | `set` | 답 여러 개 (x = 2 또는 x = −3) | 순서 무관 | B |
 | `inequality`, `pair`, `complex` … | 그때 정한다 | | B~C |
-| `choice` | 보기 고르기 | — | 그래프·개념 문제 |
+| `choice` | 보기 고르기. 보기 목록은 유형의 `answer.options`(배열, 또는 `(v, ctx)` 를 받는 함수). 값은 보기의 글자 그대로(`'>'`, `'='`, `'<'`). 숫자 키패드 대신 보기 단추가 나온다. | — | A09 크기 비교 (만듦), 그래프·개념 문제 |
 
 판정 결과는 네 가지다.
 
@@ -179,7 +179,7 @@ MH.MAP = {
     { id: 'A09', title: '약분과 통분',
       summary: '크기가 같은 분수, 기약분수, 통분, 크기 비교',
       requires: ['A07', 'A08'],          // 선수 단원
-      types: ['A09.reduce', 'A09.common-denominator', 'A09.compare'],   // 이 단원의 유형(나오는 순서)
+      types: ['A09.equal', 'A09.reduce', 'A09.common', 'A09.compare'],   // 이 단원의 유형(나오는 순서)
       ready: true },                     // 만들어진 단원만 true
     { id: 'A10', title: '분수의 덧셈과 뺄셈',
       summary: '분모가 같은 경우 → 다른 경우 → 대분수',

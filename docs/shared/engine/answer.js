@@ -55,7 +55,7 @@
     /* 분수. 값은 { n, d }(분자, 분모. 약분하지 않은 그대로 둘 수 있다. MH.F 로 만든 Fraction 도 된다).
        입력은 분자 칸 / 분모 칸, answer.whole 이 참이면 그 앞에 대분수의 자연수 칸. 판정에는 '자연수,분자,분모' 또는 '분자,분모' 로 넘어온다.
        answer.form: 'mixed' 대분수로 써야 함 · 'improper' 자연수 부분 없이 써야 함 · 없으면 값만 같으면 됨
-       answer.reduce: 'off' 이면 약분 안내를 하지 않는다(약분을 배우기 전 단원). */
+       answer.reduce: 'off' 이면 약분 안내를 하지 않는다(약분을 배우기 전 단원). 'require' 이면 기약분수로 써야 한다(덜 약분한 답은 다시 쓰게 한다). */
     fraction: {
       layout: 'fraction',
       hasWhole: function (spec) { return !!spec && (spec.whole === true || spec.form === 'mixed'); },
@@ -93,6 +93,7 @@
         if (v.w !== null && v.pn !== null && v.pn >= v.d) return '값은 맞아요. 그런데 분수 부분이 아직 가분수예요. 자연수를 더 덜어 내 보세요.';
         if (form === 'mixed' && v.w === null && v.n >= v.d) return '값은 맞아요. 자연수와 진분수로 이루어진 대분수로 써 보세요.';
         if (form === 'improper' && v.w !== null && v.pn !== null) return '값은 맞아요. 자연수 부분 없이 가분수로 써 보세요.';
+        if (spec && spec.reduce === 'require' && v.pn !== null && MH.gcd(v.pn, v.d) > 1) return '값은 같지만 더 약분할 수 있어요. 분자와 분모를 함께 나눌 수 있는 수가 더 있는지 찾아보세요.';
         return null;
       },
       /** 약분이 덜 됐으면 알려 줄 말. $ … $ 사이는 화면에서 수식으로 그린다. */
@@ -131,6 +132,24 @@
         return null;
       }
     }
+  };
+  /* 보기 고르기. 값은 보기의 글자 그대로('>', '=', '<' …). 보기 목록은 유형의 answer.options(배열, 또는 (v, ctx) 를 받는 함수)에 적는다.
+     화면에는 숫자 키패드 대신 보기 단추가 나온다. */
+  MH.kinds.choice = {
+    layout: 'choice',
+    parse: function (raw) { var s = String(raw == null ? '' : raw).trim(); return s === '' || s.length > 12 ? null : s; },
+    equal: function (a, b) { return typeof a === 'string' && a === b; },
+    note: function () { return null; },
+    valid: function (value) { return typeof value === 'string' && value.length > 0; },
+    tex: function (value) { return value; },
+    raw: function (value) { return value; },
+    say: function (value) { return value; },
+    common: function () { return null; }
+  };
+  /** 그 문제의 보기 목록 */
+  MH.optionsOf = function (problem) {
+    var o = MH.types[problem.type].answer.options;
+    return typeof o === 'function' ? o(problem.v, problem.ctx) : o;
   };
   function josaOf(n) { return MH.josa(n, '이에요/예요').slice(String(n).length); }
 

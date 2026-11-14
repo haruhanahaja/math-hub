@@ -287,6 +287,10 @@
   function press(k) {
     if (S.phase === 'done') return;
     var f = S.fields[S.at];
+    if (S.kind.layout === 'choice') {                      /* 보기 고르기: 누른 보기로 바꾼다 */
+      if (k === 'back') S.fields[0] = ''; else if (MH.optionsOf(S.problem).indexOf(k) >= 0) S.fields[0] = k;
+      return syncBoxes();
+    }
     if (k === 'back') { if (f === '' && S.at > 0) S.at--; else S.fields[S.at] = f.slice(0, -1); }
     else if (f.length < 7) S.fields[S.at] = (f === '0' ? '' : f) + k;
     syncBoxes();
@@ -326,7 +330,11 @@
       var keys = '';
       ['1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) { keys += '<button data-key="' + k + '">' + k + '</button>'; });
       keys += '<button class="k-back" data-key="back" aria-label="지우기">' + ic('del') + '</button><button data-key="0">0</button><button class="k-ok" data-act="submit">확인</button>';
-      pad = tools + '<div class="keys">' + keys + '</div>';
+      if (S.kind.layout === 'choice') {
+        keys = MH.optionsOf(S.problem).map(function (o) { return '<button data-key="' + esc(o) + '" aria-label="' + esc(o) + '">' + tex(S.kind.tex(o), false) + '</button>'; }).join('')
+          + '<button class="k-ok" data-act="submit">확인</button>';
+      }
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
@@ -409,7 +417,7 @@
   }
   function onKey(e) {
     if (!S || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (/^[0-9]$/.test(e.key)) press(e.key);
+    if (/^[0-9]$/.test(e.key) || (S.kind.layout === 'choice' && e.key.length === 1)) press(e.key);
     else if (e.key === 'Backspace') press('back');
     else if (e.key === 'Tab' && S.fields.length > 1 && S.phase !== 'done') { e.preventDefault(); S.at = (S.at + 1) % S.fields.length; syncBoxes(); }
     else if (e.key === 'Enter') { e.preventDefault(); submit(); }

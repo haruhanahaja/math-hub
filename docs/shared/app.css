@@ -119,6 +119,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .keys button { height: clamp(52px, 8.2vh, 66px); border-radius: 14px; background: var(--key); box-shadow: var(--shadow); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; display: grid; place-items: center; }
 .keys button:active { background: var(--key-down); }
 .keys .k-ok { background: var(--brand); color: var(--on-brand); font-size: 18px; font-weight: 700; } .keys .k-ok:active { background: var(--brand); opacity: .85; }
+.keys.choice button { height: 64px; font-size: 30px; } .keys.choice .k-ok { grid-column: 1 / -1; height: 58px; font-size: 18px; }
 .keys .k-back { color: var(--ink-2); } .keys .k-back .ic { width: 26px; height: 26px; }
 .pad .btn { min-height: 60px; }
 .pad .sub-link { display: block; text-align: center; padding: 12px 0 2px; font-size: 13.5px; color: var(--ink-2); font-weight: 600; }
