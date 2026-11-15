@@ -110,6 +110,8 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .steps li { counter-increment: s; position: relative; padding-left: 30px; font-size: 14.5px; color: var(--ink); }
 .steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 21px; height: 21px; border-radius: 50%; background: var(--track); color: var(--ink-2); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
 .steps .tex { margin-top: 8px; font-size: 20px; overflow-x: auto; } .steps .tex .katex { font-size: 1em; }
+/* 분수가 든 풀이 수식: 줄이 넘어가도 위아래 줄이 겹치지 않게 줄 높이를 분수 키에 맞춘다 */
+.steps .tex.tall { margin-top: 2px; line-height: 2.6; overflow-y: hidden; }
 .pad { flex: none; padding: 8px max(10px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); background: var(--bg); border-top: 1px solid var(--line); }
 .tools { display: flex; gap: 8px; margin-bottom: 8px; }
 .tools button { flex: 1; height: 40px; border-radius: 12px; font-size: 14px; font-weight: 650; color: var(--ink-2); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: center; gap: 6px; }

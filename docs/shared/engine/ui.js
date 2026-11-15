@@ -179,7 +179,7 @@
   function stepsHtml() {
     var steps = S.def.steps(S.problem.v, S.problem.ctx);
     return '<div class="msg"><b>풀이</b><ol class="steps">' + steps.map(function (s) {
-      return '<li>' + esc(s.say) + (s.tex ? '<div class="tex">' + tex(s.tex, false) + '</div>' : '') + '</li>';
+      return '<li>' + esc(s.say) + (s.tex ? '<div class="tex' + (/frac/.test(s.tex) ? ' tall' : '') + '">' + tex(s.tex, false) + '</div>' : '') + '</li>';
     }).join('') + '</ol></div>';
   }
   /** 단원 통과 · 하루 목표 달성 알림 */
