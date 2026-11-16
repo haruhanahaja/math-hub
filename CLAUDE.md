@@ -7,6 +7,7 @@
 ## 디자인
 - 어린이용 디자인 금지. English Hub처럼 깔끔하게.
 - 휴대폰 우선. 큰 숫자 키패드, 분수는 분자/분모 칸을 나눠 입력.
+- 넓은 화면(아이패드 · 컴퓨터, 폭 760px 이상)에서는 왼쪽에 문제와 풀이 공간, 오른쪽에 답 칸 · 설명 · 키패드를 둔다. 휴대폰에서는 '풀이 쓰기' 를 누르면 키패드 자리에 풀이 공간이 나온다. 풀이 공간을 끄면 예전 한 칸 화면이다.
 - 수식은 KaTeX로 표시.
 - 시간 제한은 기본 꺼짐.
 
@@ -45,7 +46,7 @@
 - `docs/` 가 사이트 전체다(GitHub Pages: main 브랜치의 /docs). 빌드 단계 없는 정적 HTML/JS.
   - `docs/index.html` 허브 화면. 영역 목록과 숫자는 단원 지도와 진도 기록에서 읽는다.
   - `docs/shared/map.js` 단원 지도. 단원을 만들면 `READY` 에 유형 목록을 적는다.
-  - `docs/shared/engine/` 공통 엔진: `rng.js` `num.js` `answer.js` `types.js` `progress.js`(화면 없이 돈다) + `ui.js`(화면).
+  - `docs/shared/engine/` 공통 엔진: `rng.js` `num.js` `answer.js` `types.js` `progress.js`(화면 없이 돈다) + `ui.js`(화면) + `scratch.js`(풀이 공간: 문제 아래에 펜 · 손가락으로 풀이를 쓰는 캔버스. 쓴 것은 저장하지 않고 손글씨를 답으로 읽지도 않는다. 답은 키패드로 넣는다).
   - `docs/<구간 key>/` 구간별 앱(basic, middle, common, algebra, calculus, stats). `index.html` 은 틀뿐이고, 단원은 `units/<소문자 id>.js` 하나씩.
   - `docs/shared/vendor/` 외부 라이브러리(KaTeX, fraction.js). CDN 을 쓰지 않고 함께 올린다(오프라인 동작). 분수 계산은 `MH.F(분자, 분모)` 로 한다.
   - `docs/sw.js` 오프라인용 서비스워커. `docs/` 안의 파일을 고쳤으면 커밋 전에 `python3 tools/build_sw.py` 를 실행한다.

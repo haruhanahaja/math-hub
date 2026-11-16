@@ -21,6 +21,7 @@
     del: 'M9 5h11v14H9l-6-7zM12 9.500l5 5M17 9.500l-5 5',
     hint: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.500 10.900V16h7v-2.100A6 6 0 0 0 12 3z',
     steps: 'M5 6h14M5 12h14M5 18h9',
+    pen: 'M4 20l4.500-1L19.500 8l-3.500-3.500L5 15.500zM13.500 7l3.500 3.500',
     book: 'M4 5.500A2.500 2.500 0 0 1 6.500 3H20v15H6.500A2.500 2.500 0 0 0 4 20.500zM4 20.500A2.500 2.500 0 0 0 6.500 21H20M8.500 8h7M8.500 12h5',
     auto: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 3v18M12 7l5.500 1.500M12 12h9M12 17l5.500-1.500',
     light: 'M12 4V2M12 22v-2M4 12H2M22 12h-2M5.600 5.600 4.200 4.200M19.800 19.800l-1.400-1.400M5.600 18.400l-1.400 1.400M19.800 4.200l-1.400 1.400M12 7.500a4.500 4.500 0 1 1 0 9 4.500 4.500 0 0 1 0-9z',
@@ -400,6 +401,23 @@
       qt.style.fontSize = Math.max(18, Math.floor(size * qt.clientWidth / qt.scrollWidth * 0.98)) + 'px';
     }
   }
+  /* 풀이 공간(engine/scratch.js).
+     넓은 화면(아이패드 · 컴퓨터): 처음부터 열려 있고 [문제 + 풀이 공간 | 답 칸 + 설명 + 키패드] 두 칸으로 놓는다. 끄면 예전 화면 그대로이고, 끈 것을 기억한다(settings.pad.wide).
+     좁은 화면(휴대폰): '풀이 쓰기' 를 누르면 키패드 자리에 풀이 공간이 나오고, '키패드로 돌아가기' 로 답을 쓴다. 문제마다 키패드에서 시작한다(S.padOpen). */
+  function wideNow() { return window.innerWidth >= 760 && window.innerHeight >= 560; }
+  function padOn() { return !!MH.scratch && (wideNow() ? (P.s.settings.pad || {}).wide !== false : !!S.padOpen); }
+  function togglePad() {
+    clearTimeout(autoTimer);
+    if (wideNow()) { P.s.settings.pad = { wide: !padOn() }; P.save(); }
+    else S.padOpen = !S.padOpen;
+    drawSolve(false);
+  }
+  var wasWide = null;
+  function onResize() {
+    if (S && !C && wasWide !== null && wasWide !== wideNow()) return drawSolve(false);   /* 기기를 돌려 화면 종류가 바뀌었다 */
+    fitTex();
+    if (S && MH.scratch) MH.scratch.fit();
+  }
   function drawSolve(scroll) {
     C = null;                                      /* 화면을 새로 그리면 덮어 띄운 개념 카드도 사라진다 */
     var t = today(), task = S.task, u = MH.MAP.unit(task.unit), def = S.def, pr = def.prompt(S.problem.v, S.problem.ctx);
@@ -455,19 +473,28 @@
     /* 분수: (자연수 칸) + 분자 칸 / 가로줄 / 분모 칸 */
     if (frac) { var k = boxes.length; boxes = (signedFrac() ? '<span class="sign" id="ans-sign">' + signHtml((done ? S.final : S.fields)[0]) + '</span>' : '') + (k === 3 ? boxes[0] : '') + '<span class="frac-in">' + boxes[k - 2] + '<i></i>' + boxes[k - 1] + '</span>'; }
     else boxes = boxes.join('');
-    root.innerHTML = '<div class="solve">'
-      + '<header class="bar"><a class="icon-btn" href="#unit/' + task.unit + '" aria-label="나가기">' + ic('close') + '</a><span class="mid">' + esc(head) + '</span><span class="count">' + count + '</span></header>'
-      + '<div class="track"><i style="width:' + pct + '%"></i></div>'
-      + '<main class="q" id="q"><div class="q-tag">' + tag + (!S.test && MH.concepts[def.unit] ? '<button class="q-concept" data-act="concept">' + ic('book') + '개념 보기</button>' : '') + '</div>'
+    var sp = padOn(), two = sp && wideNow();
+    wasWide = wideNow();
+    var top = '<header class="bar"><a class="icon-btn" href="#unit/' + task.unit + '" aria-label="나가기">' + ic('close') + '</a><span class="mid">' + esc(head) + '</span><span class="count">' + count + '</span></header>'
+      + '<div class="track"><i style="width:' + pct + '%"></i></div>';
+    var ask = '<div class="q-tag">' + tag + '<span class="q-btns">'
+      + (MH.scratch ? '<button class="q-concept' + (sp ? ' on' : '') + '" data-act="sp-toggle" aria-pressed="' + sp + '">' + ic('pen') + (!sp ? '풀이 쓰기' : two ? '풀이 공간 닫기' : '키패드') + '</button>' : '')
+      + (!S.test && MH.concepts[def.unit] ? '<button class="q-concept" data-act="concept">' + ic('book') + '개념 보기</button>' : '') + '</span></div>'
       + (pr.tex ? '<div class="q-tex">' + tex(pr.tex, false) + '</div>' : '')
       + (pr.text ? '<p class="q-text">' + rich(pr.text) + '</p>' : '')
-      + (pr.figure ? MH.figure(pr.figure) : '')
-      + '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : S.kind.layout === 'factors' ? ' fac' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
-      + '<div class="fb" id="fb" aria-live="polite">' + fb + '</div></main>'
-      + '<footer class="pad">' + pad + '</footer></div>';
+      + (pr.figure ? MH.figure(pr.figure) : '');
+    var answer = '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : S.kind.layout === 'factors' ? ' fac' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>';
+    var feedback = '<div class="fb" id="fb" aria-live="polite">' + fb + '</div>';
+    /* 두 칸: 왼쪽에 문제 + 풀이 공간, 오른쪽에 답 칸 + 설명 + 키패드. 한 칸: 문제 · 답 칸 · (풀이 공간) · 설명, 아래에 키패드 */
+    root.innerHTML = two
+      ? '<div class="solve two">' + top + '<div class="cols"><main class="q" id="q">' + ask + MH.scratch.html() + '</main>'
+        + '<aside class="side"><div class="side-top" id="side">' + answer + feedback + '</div><footer class="pad">' + pad + '</footer></aside></div></div>'
+      : '<div class="solve">' + top + '<main class="q" id="q">' + ask + answer + feedback + '</main><footer class="pad' + (sp ? ' writing' : '') + '">'
+        + (sp ? MH.scratch.html() + '<button class="btn ghost" data-act="sp-toggle">' + (done ? '돌아가기' : '키패드로 돌아가기') + '</button>' : pad) + '</footer></div>';
     fitTex();
+    if (MH.scratch) { if (sp) MH.scratch.mount(root, S.problem.type + '|' + S.problem.level + '|' + S.problem.seed + '|' + (S.test ? 't' : 's')); else MH.scratch.unmount(); }
     if (scroll) {
-      var q = document.getElementById('q'), f = document.getElementById('fb');
+      var q = document.getElementById(two ? 'side' : 'q'), f = document.getElementById('fb');
       /* 풀이는 풀이의 첫 줄부터, 판정 결과는 답 칸과 함께, 힌트는 가려져 있을 때만 보이게 민다 */
       if (S.showSteps) q.scrollTop = Math.max(0, f.lastElementChild.offsetTop - q.offsetTop - 12);
       else if (S.msgs.length) {
@@ -530,6 +557,8 @@
     else if (act === 'solution') showSolution(false);
     else if (act === 'solution-yes') showSolution(true);
     else if (act === 'solution-no') { S.ask = false; drawSolve(false); }
+    else if (act === 'sp-toggle') togglePad();
+    else if (act && act.indexOf('sp-') === 0) MH.scratch.act(act);
     else if (act === 'concept') { clearTimeout(autoTimer); C = { unit: S.def.unit, i: 0, sheet: true }; drawConcept(); }
   }
   function onKey(e) {
@@ -570,7 +599,7 @@
         root.addEventListener('click', onClick);
         document.addEventListener('keydown', onKey);
         window.addEventListener('hashchange', route);
-        window.addEventListener('resize', fitTex);
+        window.addEventListener('resize', onResize);
         if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitTex);
         MH.onSystemChange(function () { if (!S) route(); else MH.apply(); });
         route();
