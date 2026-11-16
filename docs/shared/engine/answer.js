@@ -176,14 +176,45 @@
      화면에는 숫자 키패드 대신 보기 단추가 나온다. */
   MH.kinds.choice = {
     layout: 'choice',
-    parse: function (raw) { var s = String(raw == null ? '' : raw).trim(); return s === '' || s.length > 12 ? null : s; },
+    parse: function (raw) { var s = String(raw == null ? '' : raw).trim(); return s === '' || s.length > 40 ? null : s; },
     equal: function (a, b) { return typeof a === 'string' && a === b; },
     note: function () { return null; },
     valid: function (value) { return typeof value === 'string' && value.length > 0; },
     tex: function (value) { return value; },
     raw: function (value) { return value; },
     say: function (value) { return value; },
+    /** 보기는 수식일 수 있다('-\\frac{6}{3}'): 답 칸과 '내 답' 에 수식으로 그린다(한글 보기는 화면이 글자 그대로 보여 준다) */
+    sayTex: function (value) { return value; },
+    show: function (raw) { return raw; },
     common: function () { return null; }
+  };
+  /* 부호가 있는 수(정수 · 소수). 값은 { n, p }: n ÷ 10^p 이고 n 은 음수일 수 있다(-1.5 → { n: -15, p: 1 }).
+     입력은 숫자 키패드 + − 키(answer.plus 가 있으면 + 키도, answer.decimal 이 참이면 소수점 키도)로 친 문자열: '-3', '+7', '-1.5'.
+     answer.plus: 'notice' 이면 양수를 부호 없이 썼을 때 정답으로 하고 "부호를 붙여 쓰면 +7"이라고 알려 준다. 정답도 + 를 붙여 보여 준다. */
+  MH.kinds.signed = {
+    layout: 'signed',
+    parse: function (raw) {
+      var m = /^([+\-−])?(\d{1,7})(?:\.(\d{0,4}))?$/.exec(String(raw == null ? '' : raw).replace(/\s/g, ''));
+      if (!m) return null;
+      var f = m[3] || '', n = Number(m[2] + f), neg = m[1] === '-' || m[1] === '−';
+      return { n: neg && n !== 0 ? -n : n, p: f.length, sign: m[1] ? (neg ? '-' : '+') : '' };
+    },
+    valid: function (v) { return !!v && Number.isSafeInteger(v.n) && Number.isInteger(v.p) && v.p >= 0 && v.p <= 6; },
+    equal: function (a, b) { return this.valid(a) && this.valid(b) && a.n * MH.pow10(b.p) === b.n * MH.pow10(a.p); },
+    note: function (v, raw, spec) {
+      return spec && spec.plus === 'notice' && v.n > 0 && v.sign === '' ? '부호를 붙여 쓰면 $' + this.tex(v, spec) + '$' + josaOf(Math.abs(v.n)) + '.' : null;
+    },
+    tex: function (v, spec) { return (v.n < 0 ? '-' : v.n > 0 && spec && spec.plus ? '+' : '') + MH.decStr(Math.abs(v.n), v.p); },
+    raw: function (v, spec) { return this.tex(v, spec); },
+    /** '내 답' 은 입력한 그대로(쓴 부호, 끝의 0 도) */
+    sayTex: function (v) { return (v.sign !== undefined ? v.sign : v.n < 0 ? '-' : '') + MH.decStr(Math.abs(v.n), v.p, true); },
+    say: function (v) { return this.sayTex(v).replace('-', '−'); },
+    show: function (raw) { return raw; },
+    common: function (input, answer) {
+      if (answer.n !== 0 && input.n * MH.pow10(answer.p) === -answer.n * MH.pow10(input.p))
+        return { id: 'sign', explain: '수는 맞는데 부호가 반대예요. 0보다 큰 수는 +, 0보다 작은 수는 −예요.' };
+      return null;
+    }
   };
   /* 소인수분해. 값은 { f: [2, 2, 3, 7] }(곱해진 수의 목록. 순서는 상관없다).
      입력은 숫자 키패드 + × 키 + 지수 키로 친 문자열: '2×2×3×7' 이나 '2^2×3×7'. 판정은 곱해진 수의 목록이 같은지로 한다.

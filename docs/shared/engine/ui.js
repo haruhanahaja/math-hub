@@ -111,7 +111,7 @@
   /* ── 그림 ─────────────────────────────────────────────
      문제의 prompt 가 figure 를 주면 식 · 글 아래에 그린다.
      { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
-     { type: 'line', max: 오른쪽 끝의 자연수, parts: 1 을 나눈 칸 수, mark: 0 에서 몇 번째 눈금인가 } */
+     { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가 } */
   MH.figure = function (f) {
     var h = '', i, j;
     if (f.type === 'bar') {
@@ -124,15 +124,15 @@
       return '<div class="figure" role="img" aria-label="똑같이 ' + f.parts + '칸으로 나눈 띠 ' + bars + '개에서 ' + f.filled + '칸을 색칠한 그림">' + h + '</div>';
     }
     if (f.type === 'line') {
-      var W = 320, L = 18, R = W - 18, n = f.max * f.parts, x = function (k) { return Math.round((L + (R - L) * k / n) * 10) / 10; };
+      var W = 320, L = 18, R = W - 18, lo = f.min || 0, n = (f.max - lo) * f.parts, x = function (k) { return Math.round((L + (R - L) * k / n) * 10) / 10; };
       h = '<line x1="' + (L - 8) + '" y1="34" x2="' + (R + 8) + '" y2="34" class="ax"/>';
       for (i = 0; i <= n; i++) {
         var big = i % f.parts === 0;
         h += '<line x1="' + x(i) + '" y1="' + (big ? 24 : 28) + '" x2="' + x(i) + '" y2="' + (big ? 44 : 40) + '" class="ax"/>';
-        if (big) h += '<text x="' + x(i) + '" y="62" text-anchor="middle">' + i / f.parts + '</text>';
+        if (big) h += '<text x="' + x(i) + '" y="62" text-anchor="middle">' + String(i / f.parts + lo).replace('-', '−') + '</text>';
       }
       h += '<path d="M' + x(f.mark) + ' 22 l-6 -10 h12 z" class="mk"/><text x="' + x(f.mark) + '" y="9" text-anchor="middle" class="mk">□</text>';
-      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="0부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었고, 0에서 ' + f.mark + '번째 눈금에 □ 표시가 있다">' + h + '</svg></div>';
+      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다">' + h + '</svg></div>';
     }
     return '';
   };
@@ -302,6 +302,14 @@
       else if (dot < 0 ? f.length < 7 : f.length - dot <= 4) S.fields[S.at] = (f === '0' ? '' : f) + k;
       return syncBoxes();
     }
+    if (S.kind.layout === 'signed' && k !== 'back') {      /* 부호가 있는 수: − 와 + 는 맨 앞의 부호를 바꾼다(한 번 더 누르면 지운다) */
+      var sg = /^[+-]/.test(f) ? f.charAt(0) : '', body = f.slice(sg.length), pt = body.indexOf('.');
+      if (k === '-' || k === '+') sg = sg === k ? '' : k;
+      else if (k === '.') { if (S.def.answer.decimal && pt < 0 && body.length < 7) body = (body === '' ? '0' : body) + '.'; }
+      else if (pt < 0 ? body.length < 7 : body.length - pt <= 4) body = (body === '0' ? '' : body) + k;
+      S.fields[S.at] = sg + body;
+      return syncBoxes();
+    }
     if (S.kind.layout === 'factors' && k !== 'back') {     /* 소인수분해: 숫자 · × · 지수(^). × 와 지수는 숫자 바로 뒤에만 */
       var tok = f.slice(f.lastIndexOf('×') + 1), pow = tok.indexOf('^'), afterDigit = /\d$/.test(f);
       if (k === '×') { if (afterDigit && f.length < 30) S.fields[S.at] = f + '×'; }
@@ -354,8 +362,10 @@
       }
       if (S.kind.layout === 'decimal') keys = keys.replace('<button class="k-ok"', '<button data-key="." aria-label="소수점">.</button><button class="k-ok"');
       if (S.kind.layout === 'factors') keys = keys.replace('<button class="k-ok"', '<button data-key="×" aria-label="곱하기">×</button><button class="k-pow" data-key="^" aria-label="지수 쓰기">지수</button><button class="k-ok"');
+      if (S.kind.layout === 'signed') keys = keys.replace('<button class="k-ok"', (S.def.answer.decimal ? '<button data-key="." aria-label="소수점">.</button>' : '<span></span>')
+        + (S.def.answer.plus ? '<button class="k-sign" data-key="+" aria-label="양의 부호">+</button>' : '') + '<button class="k-sign" data-key="-" aria-label="음의 부호">−</button><button class="k-ok"');
       var wordy = S.kind.layout === 'choice' && MH.optionsOf(S.problem).some(function (o) { return /[가-힣]/.test(o); });
-      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : '') + '">' + keys + '</div>';
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
@@ -440,6 +450,7 @@
     if (!S || e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^[0-9]$/.test(e.key) || (S.kind.layout === 'choice' && e.key.length === 1)) press(e.key);
     else if (e.key === '.' && S.kind.layout === 'decimal') press('.');
+    else if (S.kind.layout === 'signed' && /^[-+.]$/.test(e.key)) press(e.key);
     else if (S.kind.layout === 'factors' && /^[x*×^]$/i.test(e.key)) press(e.key === '^' ? '^' : '×');
     else if (e.key === 'Backspace') press('back');
     else if (e.key === 'Tab' && S.fields.length > 1 && S.phase !== 'done') { e.preventDefault(); S.at = (S.at + 1) % S.fields.length; syncBoxes(); }
