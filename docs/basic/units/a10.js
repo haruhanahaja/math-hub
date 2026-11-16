@@ -207,3 +207,24 @@
     { name: '분모가 다를 때', vars: vars('-', true, freeD(2, 8)), where: all(fine, reduced, is('same', false), smallL) }
   ], ['flipped', 'no-decrement', 'wrong-operation', 'numerators-kept', 'fractions-only']);
 })();
+
+/* ── 개념 카드 ── */
+MH.defineConcept('A10', [
+  { title: '분모가 같으면 분자끼리만', body: [
+    '분모는 조각의 크기예요. 조각 크기가 같으면 조각의 개수(분자)만 더하거나 빼면 돼요.',
+    { tex: '\\dfrac{1}{5} + \\dfrac{2}{5} = \\dfrac{3}{5}' },
+    '분모끼리는 더하지 않아요. 5분의 1짜리 조각 1개와 2개를 모아도 조각의 크기는 여전히 5분의 1이에요.'
+  ] },
+  { title: '분모가 다르면 통분부터', body: [
+    '조각 크기가 다르면 바로 셀 수 없어요. 먼저 통분해서 조각 크기를 맞춰요.',
+    { tex: '\\dfrac{1}{2} + \\dfrac{1}{3} = \\dfrac{3}{6} + \\dfrac{2}{6} = \\dfrac{5}{6}' },
+    { list: ['① 분모 2와 3의 최소공배수 6으로 통분해요.', '② 분자끼리 더하거나 빼요.', '③ 약분할 수 있으면 약분해요.'] }
+  ] },
+  { title: '대분수 — 자연수끼리, 분수끼리', body: [
+    { tex: '1\\dfrac{1}{5} + 2\\dfrac{3}{5} = 3\\dfrac{4}{5}' },
+    '분수 부분의 합이 1을 넘으면 1을 자연수로 올려요.',
+    { tex: '1\\dfrac{3}{5} + 2\\dfrac{4}{5} = 3\\dfrac{7}{5} = 4\\dfrac{2}{5}' },
+    '분수 부분을 뺄 수 없으면 자연수에서 1을 빌려 분수로 바꿔요.',
+    { tex: '3\\dfrac{1}{5} - 1\\dfrac{3}{5} = 2\\dfrac{6}{5} - 1\\dfrac{3}{5} = 1\\dfrac{3}{5}' }
+  ] }
+]);

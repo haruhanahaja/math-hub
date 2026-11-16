@@ -21,6 +21,7 @@ globalThis.T = T; globalThis.group = group; globalThis.ok = ok; globalThis.eq = 
 
 load('tests/types.test.js');
 load('tests/map.test.js');
+load('tests/concepts.test.js');
 load('tests/answer.test.js');
 load('tests/progress.test.js');
 load('tests/units/a01.test.js');

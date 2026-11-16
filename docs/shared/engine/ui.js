@@ -3,12 +3,14 @@
    주소: #            구간 홈(단원 목록)
          #unit/A01    단원 화면
          #study/A01   공부하기
-         #test/A01    바로 통과 시험 */
+         #test/A01    바로 통과 시험
+         #learn/A01   개념 카드(단원을 처음 공부할 때 한 번은 저절로 열린다) */
 (function () {
   'use strict';
   var MH = window.MH, P = MH.progress;
   var root, STAGE, HOME = '../';
   var S = null;                                   /* 문제 화면의 상태(화면에만 있는 것) */
+  var C = null;                                   /* 개념 카드의 상태 { unit, i: 지금 카드, sheet: 문제 화면 위에 덮어 띄웠는가 } */
   var AUTO_NEXT = 700, autoTimer = 0;             /* 맞히면 이만큼(밀리초) 초록색으로 보여 준 뒤 다음 문제로 넘어간다 */
 
   var ICON = {
@@ -19,6 +21,7 @@
     del: 'M9 5h11v14H9l-6-7zM12 9.500l5 5M17 9.500l-5 5',
     hint: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.500 10.900V16h7v-2.100A6 6 0 0 0 12 3z',
     steps: 'M5 6h14M5 12h14M5 18h9',
+    book: 'M4 5.500A2.500 2.500 0 0 1 6.500 3H20v15H6.500A2.500 2.500 0 0 0 4 20.500zM4 20.500A2.500 2.500 0 0 0 6.500 21H20M8.500 8h7M8.500 12h5',
     auto: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 3v18M12 7l5.500 1.500M12 12h9M12 17l5.500-1.500',
     light: 'M12 4V2M12 22v-2M4 12H2M22 12h-2M5.600 5.600 4.200 4.200M19.800 19.800l-1.400-1.400M5.600 18.400l-1.400 1.400M19.800 4.200l-1.400 1.400M12 7.500a4.500 4.500 0 1 1 0 9 4.500 4.500 0 0 1 0-9z',
     dark: 'M20 14.500A8 8 0 0 1 9.500 4 8 8 0 1 0 20 14.500z'
@@ -101,6 +104,7 @@
           return '<li><span class="txt">' + esc(def.title) + '<small>' + esc(def.levels[ts.level].name) + ' · ' + ts.n + '문제 풀었어요</small></span><span class="lv" aria-label="단계 ' + (ts.level + 1) + ' / ' + def.levels.length + '">' + lv + '</span></li>';
         }).join('') + '</ul></div>'
         + '<div class="actions"><a class="btn" href="#study/' + id + '">' + (st === 'passed' ? '계속 연습하기' : P.unit(id).n ? '이어서 공부하기' : '공부하기') + '</a>'
+        + (MH.concepts[id] ? '<a class="btn ghost" href="#learn/' + id + '">' + ic('book') + '개념 보기</a>' : '')
         + (st === 'open' && P.testAllowed(id) ? '<a class="btn ghost" href="#test/' + id + '">' + (P.s.test && P.s.test.unit === id ? '시험 이어 하기 (' + (P.s.test.i + 1) + ' / ' + P.s.test.items.length + ')' : '바로 통과 시험') + '</a>'
           + '<p class="note">이미 아는 내용이면 10문제로 바로 통과할 수 있어요. 힌트와 풀이 없이 9문제를 맞히면 돼요.</p>' : '') + '</div>';
     }
@@ -131,11 +135,50 @@
         h += '<line x1="' + x(i) + '" y1="' + (big ? 24 : 28) + '" x2="' + x(i) + '" y2="' + (big ? 44 : 40) + '" class="ax"/>';
         if (big) h += '<text x="' + x(i) + '" y="62" text-anchor="middle">' + String(i / f.parts + lo).replace('-', '−') + '</text>';
       }
-      h += '<path d="M' + x(f.mark) + ' 22 l-6 -10 h12 z" class="mk"/><text x="' + x(f.mark) + '" y="9" text-anchor="middle" class="mk">□</text>';
-      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다">' + h + '</svg></div>';
+      var marked = f.mark !== undefined && f.mark !== null;        /* mark 를 안 적으면 표시 없는 수직선(개념 카드) */
+      if (marked) h += '<path d="M' + x(f.mark) + ' 22 l-6 -10 h12 z" class="mk"/><text x="' + x(f.mark) + '" y="9" text-anchor="middle" class="mk">□</text>';
+      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었' + (marked ? '고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다' : '다') + '">' + h + '</svg></div>';
     }
     return '';
   };
+
+  /* ── 개념 카드 ─────────────────────────────────────────
+     한 번에 카드 한 장. #learn/단원 으로 열면 한 화면을 다 쓰고, 문제 화면의 '개념 보기' 로 열면 문제 위에 덮어 띄운다(푸는 중인 문제는 그대로 남는다). */
+  function conceptBlock(b) {
+    if (typeof b === 'string') return '<p>' + rich(b) + '</p>';
+    if (typeof b.tex === 'string') return '<div class="c-tex">' + tex(b.tex, false) + '</div>';
+    if (b.figure) return MH.figure(b.figure);
+    if (b.list) return '<ul class="c-list' + (/^[①-⑳]/.test(b.list[0]) ? ' num' : '') + '">' + b.list.map(function (t) { return '<li>' + rich(t) + '</li>'; }).join('') + '</ul>';
+    return '<ul class="c-ex">' + b.ex.map(function (e) { return '<li><span class="k">' + tex(e[0], false) + '</span><span class="d">' + rich(e[1]) + '</span></li>'; }).join('') + '</ul>';
+  }
+  function conceptHtml() {
+    var u = MH.MAP.unit(C.unit), cards = MH.concepts[C.unit], card = cards[C.i], last = C.i === cards.length - 1, dots = '';
+    for (var i = 0; i < cards.length; i++) dots += '<i class="' + (i === C.i ? 'on' : '') + '"></i>';
+    return '<div class="page learn"><header class="bar">'
+      + (C.sheet ? '<button class="icon-btn" data-act="concept-close" aria-label="문제로 돌아가기">' + ic('close') + '</button>' : '<a class="icon-btn" href="#unit/' + C.unit + '" aria-label="단원으로">' + ic('back') + '</a>')
+      + '<h1>개념 · ' + esc(unitLabel(u)) + '</h1></header>'
+      + '<section class="u-head"><span class="chip on">' + (C.i + 1) + ' / ' + cards.length + '</span><h2>' + rich(card.title) + '</h2></section>'
+      + '<div class="card c-body">' + card.body.map(conceptBlock).join('') + '</div>'
+      + '<div class="c-dots" aria-hidden="true">' + dots + '</div>'
+      + '<div class="actions c-nav">' + (C.i ? '<button class="btn ghost" data-act="concept-prev">이전</button>' : '')
+      + (!last ? '<button class="btn" data-act="concept-next">다음</button>'
+        : C.sheet ? '<button class="btn" data-act="concept-close">문제로 돌아가기</button>' : '<a class="btn" href="#study/' + C.unit + '">문제 풀러 가기' + ic('arrow') + '</a>')
+      + '</div></div>';
+  }
+  function drawConcept() {
+    if (!C.sheet) { root.innerHTML = conceptHtml(); window.scrollTo(0, 0); return; }
+    var el = document.getElementById('sheet');
+    if (!el) { el = document.createElement('div'); el.id = 'sheet'; el.className = 'sheet'; root.appendChild(el); }
+    el.innerHTML = conceptHtml(); el.scrollTop = 0;
+  }
+  function openConcept(id) {
+    if (!MH.concepts[id] || P.status(id) === 'soon') return go('#unit/' + id);
+    C = { unit: id, i: 0, sheet: false };
+    if (!P.unit(id).concept) { P.unit(id).concept = 1; P.save(); }
+    drawConcept();
+  }
+  function closeSheet() { var el = document.getElementById('sheet'); if (el) el.parentNode.removeChild(el); C = null; }
+  function moveConcept(d) { if (!C) return; C.i = Math.max(0, Math.min(MH.concepts[C.unit].length - 1, C.i + d)); drawConcept(); }
 
   /* ── 문제 화면 ─────────────────────────────────────────
      S.phase: 'answer' 첫 답을 기다림 · 'retry' 틀려서 한 번 더 · 'done' 끝(다음 문제로)
@@ -143,6 +186,8 @@
   function openStudy(id) {
     var st = P.status(id);
     if (st === 'soon' || st === 'locked') return go('#unit/' + id);
+    /* 개념 카드를 아직 안 본 단원은 문제보다 개념을 먼저 보여 준다(뒤로 가기가 막히지 않게 주소를 바꿔치기한다) */
+    if (st === 'open' && MH.concepts[id] && !P.unit(id).concept) return location.replace('#learn/' + id);
     var cur = P.s.current, def = cur && MH.types[cur.type];
     if (!(cur && !cur.rec && cur.unit === id && def && def.version === cur.version && cur.level < def.levels.length)) cur = newTask(id);
     setProblem(cur, false);
@@ -337,6 +382,7 @@
   }
 
   function drawSolve(scroll) {
+    C = null;                                      /* 화면을 새로 그리면 덮어 띄운 개념 카드도 사라진다 */
     var t = today(), task = S.task, u = MH.MAP.unit(task.unit), def = S.def, pr = def.prompt(S.problem.v, S.problem.ctx);
     var head, count, pct, tag;
     if (S.test) {
@@ -393,7 +439,7 @@
     root.innerHTML = '<div class="solve">'
       + '<header class="bar"><a class="icon-btn" href="#unit/' + task.unit + '" aria-label="나가기">' + ic('close') + '</a><span class="mid">' + esc(head) + '</span><span class="count">' + count + '</span></header>'
       + '<div class="track"><i style="width:' + pct + '%"></i></div>'
-      + '<main class="q" id="q"><div class="q-tag">' + tag + '</div>'
+      + '<main class="q" id="q"><div class="q-tag">' + tag + (!S.test && MH.concepts[def.unit] ? '<button class="q-concept" data-act="concept">' + ic('book') + '개념 보기</button>' : '') + '</div>'
       + (pr.tex ? '<div class="q-tex">' + tex(pr.tex, false) + '</div>' : '')
       + (pr.text ? '<p class="q-text">' + rich(pr.text) + '</p>' : '')
       + (pr.figure ? MH.figure(pr.figure) : '')
@@ -437,19 +483,24 @@
   /* ── 주소와 입력 ─────────────────────────────────────── */
   function route() {
     MH.apply();
-    var m = /^#(unit|study|test)\/([A-Za-z0-9]+)$/.exec(location.hash), u = m && MH.MAP.unit(m[2]);
-    S = null; clearTimeout(autoTimer);
+    var m = /^#(unit|study|test|learn)\/([A-Za-z0-9]+)$/.exec(location.hash), u = m && MH.MAP.unit(m[2]);
+    S = null; C = null; clearTimeout(autoTimer);
     window.scrollTo(0, 0);
     if (!u || u.stage !== STAGE) return renderHome();
     if (m[1] === 'unit') return renderUnit(u.id);
     if (m[1] === 'study') return openStudy(u.id);
+    if (m[1] === 'learn') return openConcept(u.id);
     return openTest(u.id);
   }
   function onClick(e) {
     var el = e.target.closest ? e.target.closest('[data-key],[data-act]') : null;
     if (!el || el.disabled) return;
-    if (el.dataset.key) return press(el.dataset.key);
     var act = el.dataset.act;
+    if (act === 'concept-prev') return moveConcept(-1);
+    if (act === 'concept-next') return moveConcept(1);
+    if (act === 'concept-close') return closeSheet();
+    if (C) return;                                 /* 개념 카드가 덮여 있는 동안에는 아래 문제 화면을 건드리지 않는다 */
+    if (el.dataset.key) return press(el.dataset.key);
     if (act === 'theme') { MH.setMode(MH.MODES[(MH.MODES.indexOf(MH.mode()) + 1) % MH.MODES.length]); return route(); }
     if (!S) return;
     if (act === 'field') { if (S.phase !== 'done') { S.at = Number(el.dataset.i); syncBoxes(); } }
@@ -459,9 +510,16 @@
     else if (act === 'solution') showSolution(false);
     else if (act === 'solution-yes') showSolution(true);
     else if (act === 'solution-no') { S.ask = false; drawSolve(false); }
+    else if (act === 'concept') { clearTimeout(autoTimer); C = { unit: S.def.unit, i: 0, sheet: true }; drawConcept(); }
   }
   function onKey(e) {
-    if (!S || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (C) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') moveConcept(e.key === 'ArrowRight' ? 1 : -1);
+      else if (e.key === 'Escape' && C.sheet) closeSheet();
+      return;
+    }
+    if (!S) return;
     if (/^[0-9]$/.test(e.key) || (S.kind.layout === 'choice' && e.key.length === 1)) press(e.key);
     else if (e.key === '.' && S.kind.layout === 'decimal') press('.');
     else if (S.kind.layout === 'signed' && /^[-+.]$/.test(e.key)) press(e.key);

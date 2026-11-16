@@ -18,6 +18,24 @@
     return def;
   };
 
+  /* 개념 카드: 단원을 처음 열 때 문제보다 먼저 보여 주는 짧은 설명(plan/architecture.md 1장).
+     cards: [{ title: 카드 제목, body: [조각 …] }] — 조각은 아래 가운데 하나.
+       '글'($ … $ 사이는 수식) · { tex: 가운데에 크게 쓰는 수식 } · { figure: 그림(MH.figure 와 같은 형식) }
+       · { list: ['글', …] } 점 목록 · { ex: [['수식 또는 낱말', '설명'], …] } 예시 표 */
+  MH.concepts = MH.concepts || {};
+  MH.defineConcept = function (unit, cards) {
+    if (MH.concepts[unit]) throw new Error('개념 카드가 겹칩니다: ' + unit);
+    if (!Array.isArray(cards) || !cards.length) throw new Error('개념 카드 ' + unit + ': 카드가 없습니다');
+    cards.forEach(function (c, i) {
+      if (!c.title || !Array.isArray(c.body) || !c.body.length) throw new Error('개념 카드 ' + unit + ' ' + (i + 1) + '번: title 과 body 가 있어야 합니다');
+      c.body.forEach(function (b) {
+        if (!(typeof b === 'string' || (b && (typeof b.tex === 'string' || b.figure || Array.isArray(b.list) || Array.isArray(b.ex))))) throw new Error('개념 카드 ' + unit + ' ' + (i + 1) + '번: 모르는 조각');
+      });
+    });
+    MH.concepts[unit] = cards;
+    return cards;
+  };
+
   MH.lastLevel = function (typeId) { return MH.types[typeId].levels.length - 1; };
 
   /** 문제 하나를 만든다. 돌려주는 것: { type, version, level, seed, v(숫자들), ctx(상황), answer(정답 값) } */
