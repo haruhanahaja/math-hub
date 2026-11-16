@@ -14,40 +14,8 @@
   var isNum = function (x) { return typeof x === 'number'; };
   var isLetter = function (x) { return typeof x === 'string' && /^[a-z]$/.test(x); };
 
-  /* ── 식 읽기: 문자에 수를 넣어 식의 값을 구한다(붙여 쓴 곱셈, 분수 꼴, 거듭제곱을 읽는다) ── */
-  var ev = function (tex, env) {
-    var s = tex.replace(/\\left|\\right/g, '').replace(/\^\{(\d+)\}/g, '^$1'), prev, i = 0;
-    do { prev = s; s = s.replace(/\\d?frac\{([^{}]*)\}\{([^{}]*)\}/g, '(($1)/($2))'); } while (s !== prev);
-    s = s.replace(/\\times/g, '*').replace(/\\div/g, '/').replace(/\s/g, '');
-    var atom = function () {
-      var c = s[i] || '';
-      if (c === '(') { i++; var x = expr(); if (s[i] !== ')') throw new Error('괄호: ' + tex); i++; return x; }
-      var m = /^\d+(?:\.(\d+))?/.exec(s.slice(i));
-      if (m) { i += m[0].length; return F(Number(m[0].replace('.', '')), MH.pow10((m[1] || '').length)); }
-      if (/[a-z]/.test(c) && env[c] !== undefined) { i++; return env[c]; }
-      throw new Error('읽을 수 없는 식: ' + tex);
-    };
-    var power = function () {
-      var x = atom();
-      if (s[i] !== '^') return x;
-      var m = /^\^(\d+)/.exec(s.slice(i)), y = F(1);
-      i += m[0].length;
-      for (var k = 0; k < Number(m[1]); k++) y = y.mul(x);
-      return y;
-    };
-    var factor = function () { var x = power(); while (i < s.length && /[a-z0-9(]/.test(s[i])) x = x.mul(power()); return x; };
-    var unary = function () { if (s[i] === '-') { i++; return unary().neg(); } if (s[i] === '+') { i++; return unary(); } return factor(); };
-    var term = function () { var x = unary(); while (s[i] === '*' || s[i] === '/') { var op = s[i++], y = unary(); x = op === '*' ? x.mul(y) : x.div(y); } return x; };
-    var expr = function () { var x = term(); while (s[i] === '+' || s[i] === '-') { var op = s[i++], y = term(); x = op === '+' ? x.add(y) : x.sub(y); } return x; };
-    var out = expr();
-    if (i !== s.length) throw new Error('읽다 만 식: ' + tex);
-    return out;
-  };
-  var E1 = {}, E2 = {};
-  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function (l, i) { E1[l] = F(2 * i + 3); E2[l] = F(-(i + 2), i + 7); });
-  var val2 = function (tex) { try { return [ev(tex, E1), ev(tex, E2)]; } catch (e) { return null; } };
-  /** 두 식이 같은 값인가(문자에 두 가지 수를 넣어 본다) */
-  var sameVal = function (a, b) { var x = val2(a), y = val2(b); return !!x && !!y && x[0].equals(y[0]) && x[1].equals(y[1]); };
+  /* 식 읽기(ev)와 보기 고르기 유형의 공통 틀은 engine/algebra.js 에 있다 */
+  var ev = MH.alg.ev;
   /* 값은 같지만 쓰는 약속을 어긴 보기(수를 뒤에 씀, 1 을 씀, 같은 문자를 나란히 씀, 0.a) */
   var FORM = { 'num-last': 1, one: 1, 'no-power': 1, 'zero-point': 1 };
 
@@ -74,35 +42,7 @@
   var mulT = function (items) { return items.map(numT).join(' \\times '); };
   var big = function (t) { return t.replace(/\\frac/g, '\\dfrac'); };
 
-  /* ── 보기 고르기 유형의 공통 틀 ──
-     o.build(q) → { raw: 기호를 생략하기 전의 식, ans, wrong: [[보기, 실수 id, 설명(없으면 o.explain[id])] …], … } */
-  var choiceType = function (o) {
-    var P = function (v) { return o.build(v.q); };
-    var optionsOf = function (v) {
-      var p = P(v), all = [p.ans].concat(p.wrong.map(function (w) { return w[0]; }));
-      return v.q.o.filter(function (i) { return i < all.length; }).map(function (i) { return all[i]; });
-    };
-    var find = function (v, id) { return P(v).wrong.filter(function (w) { return w[1] === id; })[0]; };
-    MH.defineType({
-      id: o.id, unit: 'B05', version: 1, title: o.title,
-      answer: { kind: 'choice', options: optionsOf },
-      levels: o.levels,
-      prompt: function (v) { return o.prompt(P(v)); },
-      solve: function (v) { return P(v).ans; },
-      /* 검산: 정답 보기는 원래 식과 값이 같고, 틀린 보기는 값이 다르거나 쓰는 약속을 어긴 것이다 */
-      verify: function (v, ans) {
-        var p = P(v), opts = optionsOf(v);
-        return sameVal(p.raw, p.ans) && ans === p.ans && opts.indexOf(ans) >= 0 && opts.every(function (x, i) { return opts.indexOf(x) === i; })
-          && p.wrong.every(function (w) { return w[0] !== p.ans && (FORM[w[1]] ? true : !sameVal(w[0], p.ans)); });
-      },
-      hints: function (v) { return o.hints(P(v)); },
-      steps: function (v) { return o.steps(P(v)); },
-      mistakes: o.ids.map(function (id) {
-        return { id: id, wrong: function (v) { var w = find(v, id); return w ? w[0] : null; },
-          explain: function (v) { var w = find(v, id); return w ? (w[2] || o.explain[id](P(v))) : ''; } };
-      })
-    });
-  };
+  var choiceType = function (o) { o.unit = 'B05'; o.form = FORM; MH.alg.choiceType(o); };
   var order4 = function (r) { return r.shuffle([0, 1, 2, 3]); };
   var PAIRS = [['a', 'b'], ['x', 'y'], ['a', 'x'], ['b', 'c'], ['y', 'z'], ['m', 'n'], ['p', 'q'], ['a', 'y'], ['b', 'x']];
   var ONES = ['a', 'b', 'x', 'y', 'm', 'n', 'p', 't'];

@@ -38,7 +38,8 @@
     B02: ['B02.sign', 'B02.kind', 'B02.line', 'B02.abs', 'B02.compare'],
     B03: ['B03.same', 'B03.diff', 'B03.sub', 'B03.frac', 'B03.mixed'],
     B04: ['B04.mul', 'B04.div', 'B04.frac', 'B04.pow', 'B04.mixed'],
-    B05: ['B05.omit', 'B05.div', 'B05.word', 'B05.value', 'B05.value2']
+    B05: ['B05.omit', 'B05.div', 'B05.word', 'B05.value', 'B05.value2'],
+    B06: ['B06.coef', 'B06.like', 'B06.scale', 'B06.addsub', 'B06.frac']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */

@@ -3,7 +3,7 @@
    ① 등록된 모든 유형을 단계마다 1,000문제씩 만들어 자동 검사  ② 단원 지도  ③ 판정  ④ 진도 · 복습 규칙 */
 'use strict';
 var ROOT = 'docs/';
-['shared/vendor/fraction/fraction.min.js', 'shared/engine/rng.js', 'shared/engine/num.js', 'shared/engine/answer.js', 'shared/engine/types.js',
+['shared/vendor/fraction/fraction.min.js', 'shared/engine/rng.js', 'shared/engine/num.js', 'shared/engine/answer.js', 'shared/engine/types.js', 'shared/engine/algebra.js',
   'shared/map.js', 'shared/engine/progress.js'].forEach(function (f) { load(ROOT + f); });
 MH.MAP.units.filter(function (u) { return u.ready; }).forEach(function (u) { load(ROOT + MH.MAP.file(u.id)); });
 
@@ -46,7 +46,9 @@ load('tests/units/b01.test.js');
 load('tests/units/b02.test.js');
 load('tests/units/b03.test.js');
 load('tests/units/b04.test.js');
+load('tests/algcalc.js');
 load('tests/units/b05.test.js');
+load('tests/units/b06.test.js');
 
 print('\n' + (T.fail ? '실패 ' + T.fail + '개, ' : '') + '통과 ' + T.pass + '개');
 if (T.fail) throw new Error('테스트 실패');
