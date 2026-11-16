@@ -35,7 +35,8 @@
     A16: ['A16.ratio', 'A16.percent', 'A16.percent-of', 'A16.proportion', 'A16.word'],
     A17: ['A17.add-dec', 'A17.add-frac', 'A17.mul-div', 'A17.mixed', 'A17.word'],
     B01: ['B01.prime', 'B01.power', 'B01.factor', 'B01.gcd', 'B01.lcm'],
-    B02: ['B02.sign', 'B02.kind', 'B02.line', 'B02.abs', 'B02.compare']
+    B02: ['B02.sign', 'B02.kind', 'B02.line', 'B02.abs', 'B02.compare'],
+    B03: ['B03.same', 'B03.diff', 'B03.sub', 'B03.frac', 'B03.mixed']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */

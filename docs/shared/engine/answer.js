@@ -216,6 +216,40 @@
       return null;
     }
   };
+  /* 부호가 있는 분수(유리수). 값은 { n, d }: n / d 이고 n 은 음수일 수 있다(약분하지 않은 그대로 둘 수 있다).
+     입력은 분자 칸 / 분모 칸 + − 키. 부호는 분수 왼쪽에 보이고, 판정에는 '-3,4' 로 넘어온다. 분모 칸을 비우면 정수다('-3,').
+     값이 같으면 정답이고, 약분이 덜 됐으면 알려 준다(answer.reduce: 'off' 로 끈다). 대분수 칸은 없다(가분수로 쓴다). */
+  MH.kinds.rational = {
+    layout: 'fraction', signed: true,
+    fieldsOf: function () { return ['분자', '분모']; },
+    start: function () { return 0; },
+    /** '확인': 분자만 채웠으면 분모 칸으로. 분모 칸에서 누르면 그대로 판정(분모를 비우면 정수) */
+    next: function (fields, at) { return at === 0 && /\d/.test(fields[0]) && fields[1] === '' ? 1 : -1; },
+    parse: function (raw) {
+      var m = /^([+\-−]?)(\d{1,7})(?:[,\/](\d{0,7}))?$/.exec(String(raw == null ? '' : raw).replace(/\s/g, ''));
+      if (!m) return null;
+      var whole = m[3] === undefined || m[3] === '', d = whole ? 1 : Number(m[3]), n = Number(m[2]), neg = m[1] === '-' || m[1] === '−';
+      if (d === 0) return null;
+      return { n: neg && n !== 0 ? -n : n, d: d, sign: m[1] ? (neg ? '-' : '+') : '', whole: whole };
+    },
+    valid: function (v) { return !!v && Number.isSafeInteger(v.n) && Number.isSafeInteger(v.d) && v.d >= 1; },
+    equal: function (a, b) { return this.valid(a) && this.valid(b) && a.n * b.d === b.n * a.d; },
+    note: function (v, raw, spec) {
+      var g = MH.gcd(v.n, v.d);
+      if ((spec && spec.reduce === 'off') || v.whole || g <= 1) return null;
+      return '약분하면 $' + this.tex({ n: v.n / g, d: v.d / g }) + '$' + josaOf(Math.abs(v.n / g)) + '.';
+    },
+    tex: function (v) { var a = Math.abs(v.n); return (v.n < 0 ? '-' : '') + (v.d === 1 ? String(a) : '\\dfrac{' + a + '}{' + v.d + '}'); },
+    raw: function (v) { return (v.n < 0 ? '-' : '') + Math.abs(v.n) + ',' + (v.d === 1 ? '' : v.d); },
+    /** '내 답' 은 입력한 그대로(쓴 부호, 약분 전 분수) */
+    sayTex: function (v) { var a = Math.abs(v.n), s = v.sign !== undefined ? v.sign : v.n < 0 ? '-' : ''; return s + (v.whole || (v.whole === undefined && v.d === 1) ? String(a) : '\\frac{' + a + '}{' + v.d + '}'); },
+    say: function (v) { var a = Math.abs(v.n); return (v.n < 0 ? '−' : '') + (v.d === 1 ? a : a + '/' + v.d); },
+    common: function (input, answer) {
+      if (answer.n !== 0 && input.n * answer.d === -answer.n * input.d)
+        return { id: 'sign', explain: '수는 맞는데 부호가 반대예요. 답이 0보다 큰지 작은지 다시 따져 보세요.' };
+      return null;
+    }
+  };
   /* 소인수분해. 값은 { f: [2, 2, 3, 7] }(곱해진 수의 목록. 순서는 상관없다).
      입력은 숫자 키패드 + × 키 + 지수 키로 친 문자열: '2×2×3×7' 이나 '2^2×3×7'. 판정은 곱해진 수의 목록이 같은지로 한다.
      소수가 아닌 수(4, 1 …)가 섞인 답도 읽기는 하고 오답으로 판정해서, 어디가 틀렸는지 알려 준다.

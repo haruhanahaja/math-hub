@@ -160,11 +160,18 @@
   function rawInput() { return S.fields.join(','); }
   /** 답 칸에 보일 내용. 답 형식에 show 가 있으면(소인수분해) 입력한 글자를 수식으로 그린다. */
   function boxHtml(f) { return S.kind.show && f !== '' ? tex(S.kind.show(f), false) : esc(f); }
+  /* 부호가 있는 분수: 부호는 분자 칸의 글자 맨 앞에 두고('-3'), 화면에는 분수 왼쪽에 따로 보여 준다 */
+  function signedFrac() { return !!S.kind.signed && S.kind.layout === 'fraction'; }
+  function signOf(f) { return /^[+-]/.test(f) ? f.charAt(0) : ''; }
+  function shown(f, i) { return signedFrac() && i === 0 ? f.slice(signOf(f).length) : f; }
+  function signHtml(f) { return signOf(f).replace('-', '−'); }
   function syncBoxes() {
     S.fields.forEach(function (f, i) {
       var box = document.getElementById('ans' + i);
-      if (box) { if (S.kind.show) box.innerHTML = boxHtml(f); else box.textContent = f; box.classList.toggle('live', i === S.at); }
+      if (box) { if (S.kind.show) box.innerHTML = boxHtml(f); else box.textContent = shown(f, i); box.classList.toggle('live', i === S.at); }
     });
+    var sg = document.getElementById('ans-sign');
+    if (sg) sg.textContent = signHtml(S.fields[0]);
     /* 칸이 여러 개면 지금 쓰는 칸이 화면 밖에 있을 수 있다(그림이 큰 문제의 분모 칸) */
     var live = document.getElementById('ans' + S.at);
     if (S.fields.length > 1 && live && live.scrollIntoView) live.scrollIntoView({ block: 'nearest' });
@@ -302,6 +309,13 @@
       else if (dot < 0 ? f.length < 7 : f.length - dot <= 4) S.fields[S.at] = (f === '0' ? '' : f) + k;
       return syncBoxes();
     }
+    if (signedFrac()) {                                    /* 부호가 있는 분수: − 와 + 는 어느 칸에서 눌러도 분수 전체의 부호를 바꾼다 */
+      var s0 = signOf(S.fields[0]), pre = S.at === 0 ? s0 : '', digits = f.slice(pre.length);
+      if (k === '-' || k === '+') S.fields[0] = (s0 === k ? '' : k) + S.fields[0].slice(s0.length);
+      else if (k === 'back') { if (digits !== '') S.fields[S.at] = pre + digits.slice(0, -1); else if (S.at > 0) S.at--; else S.fields[0] = ''; }
+      else if (digits.length < 7) S.fields[S.at] = pre + (digits === '0' ? '' : digits) + k;
+      return syncBoxes();
+    }
     if (S.kind.layout === 'signed' && k !== 'back') {      /* 부호가 있는 수: − 와 + 는 맨 앞의 부호를 바꾼다(한 번 더 누르면 지운다) */
       var sg = /^[+-]/.test(f) ? f.charAt(0) : '', body = f.slice(sg.length), pt = body.indexOf('.');
       if (k === '-' || k === '+') sg = sg === k ? '' : k;
@@ -362,19 +376,19 @@
       }
       if (S.kind.layout === 'decimal') keys = keys.replace('<button class="k-ok"', '<button data-key="." aria-label="소수점">.</button><button class="k-ok"');
       if (S.kind.layout === 'factors') keys = keys.replace('<button class="k-ok"', '<button data-key="×" aria-label="곱하기">×</button><button class="k-pow" data-key="^" aria-label="지수 쓰기">지수</button><button class="k-ok"');
-      if (S.kind.layout === 'signed') keys = keys.replace('<button class="k-ok"', (S.def.answer.decimal ? '<button data-key="." aria-label="소수점">.</button>' : '<span></span>')
+      if (S.kind.layout === 'signed' || signedFrac()) keys = keys.replace('<button class="k-ok"', (S.def.answer.decimal ? '<button data-key="." aria-label="소수점">.</button>' : '<span></span>')
         + (S.def.answer.plus ? '<button class="k-sign" data-key="+" aria-label="양의 부호">+</button>' : '') + '<button class="k-sign" data-key="-" aria-label="음의 부호">−</button><button class="k-ok"');
       var wordy = S.kind.layout === 'choice' && MH.optionsOf(S.problem).some(function (o) { return /[가-힣]/.test(o); });
-      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' || signedFrac() ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
       var label = S.labels[i];
-      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '"' + (S.kind.placeholder && !done ? ' data-ph="' + esc(S.kind.placeholder) + '"' : '') + '>' + boxHtml(done ? S.final[i] : f) + '</span>';
+      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '"' + (S.kind.placeholder && !done ? ' data-ph="' + esc(S.kind.placeholder) + '"' : '') + '>' + boxHtml(shown(done ? S.final[i] : f, i)) + '</span>';
       return multi && !frac ? '<span class="field"><small>' + label + '</small>' + box + '</span>' : box;
     });
     /* 분수: (자연수 칸) + 분자 칸 / 가로줄 / 분모 칸 */
-    if (frac) { var k = boxes.length; boxes = (k === 3 ? boxes[0] : '') + '<span class="frac-in">' + boxes[k - 2] + '<i></i>' + boxes[k - 1] + '</span>'; }
+    if (frac) { var k = boxes.length; boxes = (signedFrac() ? '<span class="sign" id="ans-sign">' + signHtml((done ? S.final : S.fields)[0]) + '</span>' : '') + (k === 3 ? boxes[0] : '') + '<span class="frac-in">' + boxes[k - 2] + '<i></i>' + boxes[k - 1] + '</span>'; }
     else boxes = boxes.join('');
     root.innerHTML = '<div class="solve">'
       + '<header class="bar"><a class="icon-btn" href="#unit/' + task.unit + '" aria-label="나가기">' + ic('close') + '</a><span class="mid">' + esc(head) + '</span><span class="count">' + count + '</span></header>'
@@ -451,6 +465,7 @@
     if (/^[0-9]$/.test(e.key) || (S.kind.layout === 'choice' && e.key.length === 1)) press(e.key);
     else if (e.key === '.' && S.kind.layout === 'decimal') press('.');
     else if (S.kind.layout === 'signed' && /^[-+.]$/.test(e.key)) press(e.key);
+    else if (signedFrac() && /^[-+]$/.test(e.key)) press(e.key);
     else if (S.kind.layout === 'factors' && /^[x*×^]$/i.test(e.key)) press(e.key === '^' ? '^' : '×');
     else if (e.key === 'Backspace') press('back');
     else if (e.key === 'Tab' && S.fields.length > 1 && S.phase !== 'done') { e.preventDefault(); S.at = (S.at + 1) % S.fields.length; syncBoxes(); }
