@@ -268,7 +268,7 @@
       S.boxClass = 'shake'; drawSolve(false); S.boxClass = ''; return;
     }
     S.redo = null;
-    var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + (S.kind.sayTex ? tex(S.kind.sayTex(j.value), false) : esc(S.kind.say(j.value))) + esc(suffix()) + '</p>';
+    var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + (S.kind.sayTex ? tex(S.kind.layout === 'choice' ? wideFrac(S.kind.sayTex(j.value)) : S.kind.sayTex(j.value), false) : esc(S.kind.say(j.value))) + esc(suffix()) + '</p>';
     var explain = j.mistake ? '<p>' + rich(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
 
     if (S.test) {
@@ -341,6 +341,14 @@
     P.s.current = null;
     setProblem(newTask(S.task.unit), false);
   }
+  /** 보기가 길면(식 '2(a+b)', '10000-3a' …) 단추를 한 줄에 둘씩 놓는다. 길이는 글자 수 + 가운데 낀 +, − 의 수로 어림한다 */
+  function longOption(o) {
+    var t = String(o).replace(/\\[a-z]+|[{}^ ]/g, '');
+    if (/\\frac/.test(o) && /[a-z]/.test(t)) return true;                    /* 문자가 든 분수는 크게 그리므로 자리가 넉넉해야 한다 */
+    return !/[가-힣]/.test(t) && t.length + (t.slice(1).match(/[+\-]/g) || []).length >= 6;
+  }
+  /** 문자가 든 분수 보기(a/2 − 4x …)는 분자 · 분모가 작게 그려져 읽기 어렵다: 크게 그린다 */
+  function wideFrac(t) { return /[a-z]/.test(t.replace(/\\[a-z]+/g, '')) ? t.replace(/\\frac/g, '\\dfrac') : t; }
   function press(k) {
     if (S.phase === 'done') return;
     var f = S.fields[S.at];
@@ -428,7 +436,7 @@
       ['1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (k) { keys += '<button data-key="' + k + '">' + k + '</button>'; });
       keys += '<button class="k-back" data-key="back" aria-label="지우기">' + ic('del') + '</button><button data-key="0">0</button><button class="k-ok" data-act="submit">확인</button>';
       if (S.kind.layout === 'choice') {
-        keys = MH.optionsOf(S.problem).map(function (o) { return '<button data-key="' + esc(o) + '" aria-label="' + esc(o) + '">' + tex(S.kind.tex(o), false) + '</button>'; }).join('')
+        keys = MH.optionsOf(S.problem).map(function (o) { return '<button data-key="' + esc(o) + '" aria-label="' + esc(o) + '">' + tex(wideFrac(S.kind.tex(o)), false) + '</button>'; }).join('')
           + '<button class="k-ok" data-act="submit">확인</button>';
       }
       if (S.kind.layout === 'decimal') keys = keys.replace('<button class="k-ok"', '<button data-key="." aria-label="소수점">.</button><button class="k-ok"');
@@ -436,7 +444,7 @@
       if (S.kind.layout === 'signed' || signedFrac()) keys = keys.replace('<button class="k-ok"', (S.def.answer.decimal ? '<button data-key="." aria-label="소수점">.</button>' : '<span></span>')
         + (S.def.answer.plus ? '<button class="k-sign" data-key="+" aria-label="양의 부호">+</button>' : '') + '<button class="k-sign" data-key="-" aria-label="음의 부호">−</button><button class="k-ok"');
       var wordy = S.kind.layout === 'choice' && MH.optionsOf(S.problem).some(function (o) { return /[가-힣]/.test(o); });
-      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' || signedFrac() ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') + (MH.optionsOf(S.problem).some(longOption) ? ' long' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' || signedFrac() ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {

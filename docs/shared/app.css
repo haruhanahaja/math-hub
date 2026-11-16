@@ -146,6 +146,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .keys.choice button { height: 64px; font-size: 30px; } .keys.choice .k-ok { grid-column: 1 / -1; height: 58px; font-size: 18px; }
 .keys.dec .k-ok { grid-column: 1 / -1; height: 52px; }
 .keys.choice.four { grid-template-columns: repeat(4, 1fr); } .keys.choice.four button { font-size: 26px; }
+.keys.choice.long { grid-template-columns: repeat(2, 1fr); } .keys.choice.long button { font-size: 22px; }
 .keys.choice.words button { font-size: 19px; font-weight: 650; word-break: keep-all; } .keys.choice.words .k-ok { font-size: 18px; }
 .keys.sgn .k-ok, .keys.sgn .k-sign { height: 52px; } .keys.sgn.wide .k-ok { grid-column: span 2; } .keys.sgn .k-sign { font-size: 28px; }
 .keys.fac .k-ok { grid-column: span 2; height: 52px; } .keys.fac .k-pow { height: 52px; font-size: 17px; font-weight: 650; color: var(--ink-2); }
