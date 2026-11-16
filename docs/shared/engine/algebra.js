@@ -1,6 +1,7 @@
 /* 문자가 든 식을 다루는 단원(B05 부터)의 공통 도구.
    · MH.alg.ev(tex, env)      화면에 그리는 식(KaTeX 글)을 읽어, 문자에 수를 넣은 값을 정확한 분수로 구한다
    · MH.alg.sameVal(a, b)     두 식이 같은 식인가(문자에 두 가지 수를 넣어 비교)
+   · MH.alg.poly(terms)       항의 목록 [[3, 'x'], [-5, '']] 을 식 '3x - 5' 로 쓴다(body 항 하나, combine 동류항 모으기)
    · MH.alg.choiceType(o)     답이 식인 유형을 '보기 고르기'로 등록한다. 틀린 보기마다 실수 id 와 설명이 붙는다
    답이 수 하나이면 키패드로, 답이 식 · 범위 · 그래프이면 보기 고르기로 만든다(CLAUDE.md '정답 판정과 피드백'). */
 (function () {
@@ -75,5 +76,24 @@
       })
     });
   };
-  MH.alg = { ev: ev, sameVal: sameVal, choiceType: choiceType, order4: function (r) { return r.shuffle([0, 1, 2, 3]); } };
+  /* ── 항의 목록 [[계수, 문자], …] (문자 '' 는 상수항) ── */
+  var abs = Math.abs;
+  /** 항 하나(부호 없이): [3, 'x'] → '3x', [-1, 'x'] → 'x', [5, ''] → '5' */
+  var body = function (t) { return (abs(t[0]) !== 1 || !t[1] ? abs(t[0]) : '') + t[1]; };
+  /** 식: [[3, 'x'], [-5, '']] → '3x - 5'. tight 이면 띄우지 않는다(보기용 '3x-5'). 계수가 0 인 항은 쓰지 않는다 */
+  var poly = function (terms, tight) {
+    var out = '';
+    terms.filter(function (t) { return t[0] !== 0; }).forEach(function (t) {
+      out += (out ? (t[0] < 0 ? (tight ? '-' : ' - ') : (tight ? '+' : ' + ')) : (t[0] < 0 ? '-' : '')) + body(t);
+    });
+    return out || '0';
+  };
+  /** 동류항끼리 모은다. 문자는 알파벳 순서, 상수항은 맨 뒤 */
+  var combine = function (terms) {
+    var sum = {}, keys = [];
+    terms.forEach(function (t) { if (sum[t[1]] === undefined) { sum[t[1]] = 0; keys.push(t[1]); } sum[t[1]] += t[0]; });
+    keys.sort(function (a, b) { return a === '' ? 1 : b === '' ? -1 : a < b ? -1 : 1; });
+    return keys.map(function (k) { return [sum[k], k]; });
+  };
+  MH.alg = { ev: ev, sameVal: sameVal, choiceType: choiceType, body: body, poly: poly, combine: combine, order4: function (r) { return r.shuffle([0, 1, 2, 3]); } };
 })();

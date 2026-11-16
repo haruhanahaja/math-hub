@@ -348,6 +348,8 @@
     if (/\\frac/.test(o) && /[a-z]/.test(t)) return true;                    /* 문자가 든 분수는 크게 그리므로 자리가 넉넉해야 한다 */
     return !/[가-힣]/.test(t) && t.length + (t.slice(1).match(/[+\-]/g) || []).length >= 6;
   }
+  /** 보기가 등식(5x - 2x = 9 - 3)이면 두 칸에 들어가지 않아 줄이 바뀐다: 단추를 한 줄에 하나씩 놓는다 */
+  function rowOption(o) { return / = /.test(String(o)); }
   /** 문자가 든 분수 보기(a/2 − 4x …)는 분자 · 분모가 작게 그려져 읽기 어렵다: 크게 그린다 */
   function wideFrac(t) { return /[a-z]/.test(t.replace(/\\[a-z]+/g, '')) ? t.replace(/\\frac/g, '\\dfrac') : t; }
   function press(k) {
@@ -462,7 +464,7 @@
       if (S.kind.layout === 'signed' || signedFrac()) keys = keys.replace('<button class="k-ok"', (S.def.answer.decimal ? '<button data-key="." aria-label="소수점">.</button>' : '<span></span>')
         + (S.def.answer.plus ? '<button class="k-sign" data-key="+" aria-label="양의 부호">+</button>' : '') + '<button class="k-sign" data-key="-" aria-label="음의 부호">−</button><button class="k-ok"');
       var wordy = S.kind.layout === 'choice' && MH.optionsOf(S.problem).some(function (o) { return /[가-힣]/.test(o); });
-      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') + (MH.optionsOf(S.problem).some(longOption) ? ' long' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' || signedFrac() ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') + (MH.optionsOf(S.problem).some(rowOption) ? ' rows' : MH.optionsOf(S.problem).some(longOption) ? ' long' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : S.kind.layout === 'signed' || signedFrac() ? ' sgn' + (S.def.answer.plus ? '' : ' wide') : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {

@@ -126,7 +126,7 @@ function sum(v) { return F(v.a, v.b).add(F(v.c, v.d)); }
 | `inequality`, `pair`, `complex` … | 그때 정한다 | | B~C |
 | `choice` | 보기 고르기. 보기 목록은 유형의 `answer.options`(배열, 또는 `(v, ctx)` 를 받는 함수). 값은 보기의 글자 그대로(`'>'`, `'='`, `'<'`, `'소수'`, `'53'`, 수식 `'-\\frac{6}{3}'`). 숫자 키패드 대신 보기 단추가 나온다. 한글 보기는 글자 그대로, 그 밖의 보기는 수식으로 그린다. 보기가 4개면 한 줄에 놓는다. | — | A09 크기 비교 (만듦), B01 소수 고르기 (만듦), 그래프·개념 문제 |
 
-답의 형식은 답의 모양으로 정한다(B06 부터). 답이 수 하나이면 키패드(`int` · `fraction` · `decimal` · `signed` · `rational`), 답이 문자가 든 식 · 범위 · 그래프 · 개념 판단이면 `choice` 다. 답이 식인 유형은 `engine/algebra.js` 의 `MH.alg.choiceType({ id, unit, title, levels, ids, build, prompt, hints, steps, explain, form })` 으로 등록한다. `build(v.q)` 가 `{ raw, ans, wrong: [[보기, 실수 id, 설명?] …] }` 을 돌려주면 보기 넷을 `v.q.o` 순서로 놓고, 정답 보기가 `raw` 와 같은 식인지 `MH.alg.ev`(문자에 수를 넣어 정확한 분수로 계산)로 검산하며, 틀린 보기를 고르면 그 보기의 실수 설명을 보여 준다. 틀린 보기는 흔한 실수로 만든 식 가운데 답과 값이 다르고 서로도 다른 것 셋이다.
+답의 형식은 답의 모양으로 정한다(B06 부터). 답이 수 하나이면 키패드(`int` · `fraction` · `decimal` · `signed` · `rational`), 답이 문자가 든 식 · 범위 · 그래프 · 개념 판단이면 `choice` 다. 보기 단추는 보기가 길면 한 줄에 둘씩, 보기가 등식(`5x - 2x = 9 - 3`)이면 한 줄에 하나씩 놓는다. 답이 식인 유형은 `engine/algebra.js` 의 `MH.alg.choiceType({ id, unit, title, levels, ids, build, prompt, hints, steps, explain, form })` 으로 등록한다. `build(v.q)` 가 `{ raw, ans, wrong: [[보기, 실수 id, 설명?] …] }` 을 돌려주면 보기 넷을 `v.q.o` 순서로 놓고, 정답 보기가 `raw` 와 같은 식인지 `MH.alg.ev`(문자에 수를 넣어 정확한 분수로 계산)로 검산하며, 틀린 보기를 고르면 그 보기의 실수 설명을 보여 준다. 틀린 보기는 흔한 실수로 만든 식 가운데 답과 값이 다르고 서로도 다른 것 셋이다.
 
 판정 결과는 네 가지다.
 

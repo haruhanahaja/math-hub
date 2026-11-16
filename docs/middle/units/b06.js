@@ -17,24 +17,10 @@
   var PAIRS = [['x', 'y'], ['a', 'b'], ['p', 'q']];
 
   /* ── 항의 목록 ── */
-  /** 항 하나(부호 없이): [3, 'x'] → '3x', [-1, 'x'] → 'x', [5, ''] → '5' */
-  var body = function (t) { return (abs(t[0]) !== 1 || !t[1] ? abs(t[0]) : '') + t[1]; };
-  /** 식: [[3, 'x'], [-5, '']] → '3x - 5'. tight 이면 띄우지 않는다(보기용 '3x-5'). 계수가 0 인 항은 쓰지 않는다 */
-  var poly = function (terms, tight) {
-    var out = '';
-    terms.filter(function (t) { return t[0] !== 0; }).forEach(function (t) {
-      out += (out ? (t[0] < 0 ? (tight ? '-' : ' - ') : (tight ? '+' : ' + ')) : (t[0] < 0 ? '-' : '')) + body(t);
-    });
-    return out || '0';
-  };
+  /* 항의 목록을 다루는 body · poly · combine 은 engine/algebra.js 에 있다 */
+  var body = A.body, poly = A.poly;
   var opt = function (terms) { return poly(terms, true); };
-  /** 동류항끼리 모은다. 문자는 알파벳 순서, 상수항은 맨 뒤 */
-  var combine = function (terms) {
-    var sum = {}, keys = [];
-    terms.forEach(function (t) { if (sum[t[1]] === undefined) { sum[t[1]] = 0; keys.push(t[1]); } sum[t[1]] += t[0]; });
-    keys.sort(function (a, b) { return a === '' ? 1 : b === '' ? -1 : a < b ? -1 : 1; });
-    return keys.map(function (k) { return [sum[k], k]; });
-  };
+  var combine = A.combine;
   /** 틀린 보기 셋을 고른다: 후보 [[보기, id] …] 가운데 답과 값이 다르고 서로 다른 것을 앞에서부터 */
   var choose = function (ans, cands) {
     var out = [];
