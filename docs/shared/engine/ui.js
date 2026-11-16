@@ -381,6 +381,17 @@
     syncBoxes();
   }
 
+  /** 긴 문제 식은 한 줄에 들어오게 글자를 줄인다(18px 까지. 그래도 넘치면 옆으로 민다).
+      수식 글꼴이 늦게 도착하면 폭이 달라지므로, 글꼴을 다 불러온 뒤와 창 크기가 바뀔 때 다시 맞춘다. */
+  function fitTex() {
+    var qt = root && root.querySelector('.q-tex');
+    if (!qt) return;
+    qt.style.fontSize = '';
+    if (qt.scrollWidth > qt.clientWidth + 1) {
+      var size = parseFloat(getComputedStyle(qt).fontSize);
+      qt.style.fontSize = Math.max(18, Math.floor(size * qt.clientWidth / qt.scrollWidth * 0.98)) + 'px';
+    }
+  }
   function drawSolve(scroll) {
     C = null;                                      /* 화면을 새로 그리면 덮어 띄운 개념 카드도 사라진다 */
     var t = today(), task = S.task, u = MH.MAP.unit(task.unit), def = S.def, pr = def.prompt(S.problem.v, S.problem.ctx);
@@ -446,6 +457,7 @@
       + '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : S.kind.layout === 'factors' ? ' fac' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
       + '<div class="fb" id="fb" aria-live="polite">' + fb + '</div></main>'
       + '<footer class="pad">' + pad + '</footer></div>';
+    fitTex();
     if (scroll) {
       var q = document.getElementById('q'), f = document.getElementById('fb');
       /* 풀이는 풀이의 첫 줄부터, 판정 결과는 답 칸과 함께, 힌트는 가려져 있을 때만 보이게 민다 */
@@ -550,6 +562,8 @@
         root.addEventListener('click', onClick);
         document.addEventListener('keydown', onKey);
         window.addEventListener('hashchange', route);
+        window.addEventListener('resize', fitTex);
+        if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitTex);
         MH.onSystemChange(function () { if (!S) route(); else MH.apply(); });
         route();
       });

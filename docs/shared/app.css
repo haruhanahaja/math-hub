@@ -97,7 +97,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .q-concept { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 650; color: var(--brand); background: var(--soft); }
 .q-concept svg.ic { width: 15px; height: 15px; }
 .q-tag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); font-weight: 600; }
-.q-tex { margin-top: 18px; text-align: center; font-size: clamp(30px, 10vw, 44px); line-height: 1.2; font-variant-numeric: tabular-nums; overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
+.q-tex { margin-top: 18px; text-align: center; font-size: clamp(30px, 10vw, 44px); line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; overflow-x: auto; overflow-y: hidden; padding: 8px 0; }
 .q-tex .katex { font-size: 1em; }
 .q-text { margin-top: 14px; font-size: 17px; line-height: 1.6; word-break: keep-all; }
 .q-tex + .q-text { text-align: center; font-size: 15px; color: var(--ink-2); margin-top: 8px; }
