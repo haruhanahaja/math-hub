@@ -185,6 +185,71 @@
     say: function (value) { return value; },
     common: function () { return null; }
   };
+  /* 소인수분해. 값은 { f: [2, 2, 3, 7] }(곱해진 수의 목록. 순서는 상관없다).
+     입력은 숫자 키패드 + × 키 + 지수 키로 친 문자열: '2×2×3×7' 이나 '2^2×3×7'. 판정은 곱해진 수의 목록이 같은지로 한다.
+     소수가 아닌 수(4, 1 …)가 섞인 답도 읽기는 하고 오답으로 판정해서, 어디가 틀렸는지 알려 준다.
+     같은 수를 여러 번 곱해 썼으면(2×2×3) 정답으로 하고 거듭제곱으로 쓰는 법을 알려 준다(answer.powers: 'off' 로 끈다). */
+  function groupFactors(f) {
+    var out = [];
+    f.slice().sort(function (a, b) { return a - b; }).forEach(function (x) {
+      var last = out[out.length - 1];
+      if (last && last[0] === x) last[1]++; else out.push([x, 1]);
+    });
+    return out;
+  }
+  function powersTex(pairs) { return pairs.map(function (t) { return t[1] === 1 ? String(t[0]) : t[0] + '^{' + t[1] + '}'; }).join(' \\times '); }
+  function productOf(f) { var x = 1; for (var i = 0; i < f.length && x <= 1e12; i++) x *= f[i]; return x; }
+  function isPrimeNumber(n) { if (n < 2) return false; for (var d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; }
+  MH.kinds.factors = {
+    layout: 'factors',
+    placeholder: '× 와 지수 키로 써요',
+    parse: function (raw) {
+      var s = String(raw == null ? '' : raw).replace(/\s/g, '').replace(/[x*]/gi, '×').replace(/×+$/, '');
+      if (s === '') return null;
+      var parts = s.split('×'), f = [], t = [];
+      for (var i = 0; i < parts.length; i++) {
+        var m = /^(\d{1,6})(?:\^(\d{1,2}))?$/.exec(parts[i]);
+        if (!m) return null;
+        var base = Number(m[1]), e = m[2] === undefined ? 1 : Number(m[2]);
+        if (base < 1 || e < 1 || e > 20 || f.length + e > 40) return null;
+        t.push([base, e]);
+        for (var k = 0; k < e; k++) f.push(base);
+      }
+      return { f: f, t: t };
+    },
+    valid: function (v) { return !!v && Array.isArray(v.f) && v.f.length >= 1 && v.f.every(function (x) { return Number.isSafeInteger(x) && x >= 1; }); },
+    equal: function (a, b) {
+      if (!this.valid(a) || !this.valid(b) || a.f.length !== b.f.length) return false;
+      var x = a.f.slice().sort(function (p, q) { return p - q; }), y = b.f.slice().sort(function (p, q) { return p - q; });
+      return x.every(function (n, i) { return n === y[i]; });
+    },
+    /** 같은 수를 따로따로 곱해 썼으면 거듭제곱으로 쓰는 법을 알려 준다 */
+    note: function (v, raw, spec) {
+      if ((spec && spec.powers === 'off') || !v.t) return null;
+      var seen = {}, twice = v.t.some(function (t) { if (seen[t[0]]) return true; seen[t[0]] = 1; return false; });
+      return twice ? '같은 수를 여러 번 곱할 때는 거듭제곱으로 써요: $' + this.tex(v) + '$.' : null;
+    },
+    tex: function (v) { return powersTex(groupFactors(v.f)); },
+    raw: function (v) { return groupFactors(v.f).map(function (t) { return t[1] === 1 ? String(t[0]) : t[0] + '^' + t[1]; }).join('×'); },
+    /** '내 답' 은 입력한 모양 그대로 */
+    sayTex: function (v) { return v.t ? powersTex(v.t) : this.tex(v); },
+    say: function (v) { return (v.t || groupFactors(v.f)).map(function (t) { return t[1] === 1 ? String(t[0]) : t[0] + '의 ' + t[1] + '제곱'; }).join(' × '); },
+    /** 입력 중인 글자를 답 칸에 그릴 수식으로: '2^3×3^' → 2^{3} \times 3^{\square} */
+    show: function (raw) {
+      return String(raw).split('×').map(function (p) { var q = p.split('^'); return q.length > 1 ? q[0] + '^{' + (q[1] === '' ? '\\square' : q[1]) + '}' : p; }).join(' \\times ');
+    },
+    common: function (input, answer) {
+      var want = productOf(answer.f), got = productOf(input.f), J = MH.josa;
+      var bad = input.f.filter(function (x) { return x > 1 && !isPrimeNumber(x); })[0];
+      if (got === want && input.f.indexOf(1) >= 0)
+        return { id: 'has-one', explain: '1은 소수가 아니에요. 소인수분해에는 소수만 써요. 1은 빼고 쓰세요.' };
+      if (got === want && bad)
+        return { id: 'not-prime', explain: J(bad, '은/는') + ' 소수가 아니에요. ' + J(bad, '을/를') + ' 더 작은 소수들의 곱으로 나누어 쓰세요.' };
+      if (got !== want && got <= 1e12)
+        return { id: 'wrong-product', explain: '쓴 수들을 모두 곱하면 ' + J(got, '이/가') + ' 돼요. ' + J(want, '이/가') + ' 되어야 해요. 빠뜨리거나 더 쓴 수가 없는지, 지수는 맞는지 확인해 보세요.' };
+      return null;
+    }
+  };
   /** 그 문제의 보기 목록 */
   MH.optionsOf = function (problem) {
     var o = MH.types[problem.type].answer.options;

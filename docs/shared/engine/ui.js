@@ -30,6 +30,7 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   /** 수식을 KaTeX 로 그린다. KaTeX 를 못 불러왔으면 글자 그대로 보여 준다. */
   function tex(src, display) {
+    if (/[가-힣]/.test(src) && src.indexOf('\\') < 0) return esc(src);      /* 한글 보기('소수', '합성수')는 글자 그대로 */
     if (window.katex) { try { return window.katex.renderToString(src, { displayMode: !!display, throwOnError: false }); } catch (e) { /* 아래로 */ } }
     return '<code>' + esc(src) + '</code>';
   }
@@ -157,10 +158,12 @@
   function blank() { return S.labels.map(function () { return ''; }); }
   function startAt() { return S.kind.start ? S.kind.start(S.def.answer) : 0; }
   function rawInput() { return S.fields.join(','); }
+  /** 답 칸에 보일 내용. 답 형식에 show 가 있으면(소인수분해) 입력한 글자를 수식으로 그린다. */
+  function boxHtml(f) { return S.kind.show && f !== '' ? tex(S.kind.show(f), false) : esc(f); }
   function syncBoxes() {
     S.fields.forEach(function (f, i) {
       var box = document.getElementById('ans' + i);
-      if (box) { box.textContent = f; box.classList.toggle('live', i === S.at); }
+      if (box) { if (S.kind.show) box.innerHTML = boxHtml(f); else box.textContent = f; box.classList.toggle('live', i === S.at); }
     });
     /* 칸이 여러 개면 지금 쓰는 칸이 화면 밖에 있을 수 있다(그림이 큰 문제의 분모 칸) */
     var live = document.getElementById('ans' + S.at);
@@ -179,7 +182,7 @@
   function stepsHtml() {
     var steps = S.def.steps(S.problem.v, S.problem.ctx);
     return '<div class="msg"><b>풀이</b><ol class="steps">' + steps.map(function (s) {
-      return '<li>' + esc(s.say) + (s.tex ? '<div class="tex' + (/frac/.test(s.tex) ? ' tall' : '') + '">' + tex(s.tex, false) + '</div>' : '') + '</li>';
+      return '<li>' + rich(s.say) + (s.tex ? '<div class="tex' + (/frac/.test(s.tex) ? ' tall' : '') + '">' + tex(s.tex, false) + '</div>' : '') + '</li>';
     }).join('') + '</ol></div>';
   }
   /** 단원 통과 · 하루 목표 달성 알림 */
@@ -214,7 +217,7 @@
     }
     S.redo = null;
     var right = j.verdict !== 'wrong', mine = '<p class="mine">내 답: ' + (S.kind.sayTex ? tex(S.kind.sayTex(j.value), false) : esc(S.kind.say(j.value))) + esc(suffix()) + '</p>';
-    var explain = j.mistake ? '<p>' + esc(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
+    var explain = j.mistake ? '<p>' + rich(j.mistake.explain) + '</p>' : '<p>처음부터 차근차근 다시 계산해 보세요.</p>';
 
     if (S.test) {
       S.testResult = P.answerTest(right, j.mistake ? j.mistake.id : null, t); P.save();
@@ -299,6 +302,13 @@
       else if (dot < 0 ? f.length < 7 : f.length - dot <= 4) S.fields[S.at] = (f === '0' ? '' : f) + k;
       return syncBoxes();
     }
+    if (S.kind.layout === 'factors' && k !== 'back') {     /* 소인수분해: 숫자 · × · 지수(^). × 와 지수는 숫자 바로 뒤에만 */
+      var tok = f.slice(f.lastIndexOf('×') + 1), pow = tok.indexOf('^'), afterDigit = /\d$/.test(f);
+      if (k === '×') { if (afterDigit && f.length < 30) S.fields[S.at] = f + '×'; }
+      else if (k === '^') { if (afterDigit && pow < 0) S.fields[S.at] = f + '^'; }
+      else if (f.length < 30 && !(k === '0' && !afterDigit) && (pow < 0 ? tok.length < 6 : tok.length - pow <= 2)) S.fields[S.at] = f + k;
+      return syncBoxes();
+    }
     if (k === 'back') { if (f === '' && S.at > 0) S.at--; else S.fields[S.at] = f.slice(0, -1); }
     else if (f.length < 7) S.fields[S.at] = (f === '0' ? '' : f) + k;
     syncBoxes();
@@ -319,7 +329,7 @@
         + esc(def.title) + (def.levels.length > 1 ? ' · 단계 ' + (task.level + 1) + ' / ' + def.levels.length : '');
     }
     var hints = def.hints(S.problem.v, S.problem.ctx), fb = '';
-    for (var h = 0; h < S.hints; h++) fb += '<div class="msg hint"><b>힌트 ' + (h + 1) + '</b><p>' + esc(hints[h]) + '</p></div>';
+    for (var h = 0; h < S.hints; h++) fb += '<div class="msg hint"><b>힌트 ' + (h + 1) + '</b><p>' + rich(hints[h]) + '</p></div>';
     if (S.redo && !done) fb += msg('hint', '다시 써 볼까요?', '<p>' + esc(S.redo) + '</p>');
     fb += S.msgs.join('');
     if (S.showSteps) fb += stepsHtml();
@@ -343,12 +353,14 @@
           + '<button class="k-ok" data-act="submit">확인</button>';
       }
       if (S.kind.layout === 'decimal') keys = keys.replace('<button class="k-ok"', '<button data-key="." aria-label="소수점">.</button><button class="k-ok"');
-      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' : S.kind.layout === 'decimal' ? ' dec' : '') + '">' + keys + '</div>';
+      if (S.kind.layout === 'factors') keys = keys.replace('<button class="k-ok"', '<button data-key="×" aria-label="곱하기">×</button><button class="k-pow" data-key="^" aria-label="지수 쓰기">지수</button><button class="k-ok"');
+      var wordy = S.kind.layout === 'choice' && MH.optionsOf(S.problem).some(function (o) { return /[가-힣]/.test(o); });
+      pad = tools + '<div class="keys' + (S.kind.layout === 'choice' ? ' choice' + (wordy ? ' words' : '') + (MH.optionsOf(S.problem).length === 4 ? ' four' : '') : S.kind.layout === 'decimal' ? ' dec' : S.kind.layout === 'factors' ? ' fac' : '') + '">' + keys + '</div>';
     }
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
       var label = S.labels[i];
-      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '">' + esc(done ? S.final[i] : f) + '</span>';
+      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '"' + (S.kind.placeholder && !done ? ' data-ph="' + esc(S.kind.placeholder) + '"' : '') + '>' + boxHtml(done ? S.final[i] : f) + '</span>';
       return multi && !frac ? '<span class="field"><small>' + label + '</small>' + box + '</span>' : box;
     });
     /* 분수: (자연수 칸) + 분자 칸 / 가로줄 / 분모 칸 */
@@ -361,7 +373,7 @@
       + (pr.tex ? '<div class="q-tex">' + tex(pr.tex, false) + '</div>' : '')
       + (pr.text ? '<p class="q-text">' + rich(pr.text) + '</p>' : '')
       + (pr.figure ? MH.figure(pr.figure) : '')
-      + '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
+      + '<div class="answer' + (frac ? ' frac' : multi ? ' multi' : S.kind.layout === 'factors' ? ' fac' : '') + '">' + boxes + (sfx ? '<span class="suffix">' + esc(sfx) + '</span>' : '') + '</div>'
       + '<div class="fb" id="fb" aria-live="polite">' + fb + '</div></main>'
       + '<footer class="pad">' + pad + '</footer></div>';
     if (scroll) {
@@ -428,6 +440,7 @@
     if (!S || e.metaKey || e.ctrlKey || e.altKey) return;
     if (/^[0-9]$/.test(e.key) || (S.kind.layout === 'choice' && e.key.length === 1)) press(e.key);
     else if (e.key === '.' && S.kind.layout === 'decimal') press('.');
+    else if (S.kind.layout === 'factors' && /^[x*×^]$/i.test(e.key)) press(e.key === '^' ? '^' : '×');
     else if (e.key === 'Backspace') press('back');
     else if (e.key === 'Tab' && S.fields.length > 1 && S.phase !== 'done') { e.preventDefault(); S.at = (S.at + 1) % S.fields.length; syncBoxes(); }
     else if (e.key === 'Enter') { e.preventDefault(); submit(); }
