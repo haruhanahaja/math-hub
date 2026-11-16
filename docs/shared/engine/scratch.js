@@ -47,21 +47,35 @@
   };
 
   /* ── 그리기 ── */
-  function widthAt(stroke, p) { return stroke.w * (0.5 + p); }
-  function segment(stroke, i) {
-    var p = stroke.pts;
-    ctx.lineWidth = widthAt(stroke, p[i + 2]);
+  /* 점과 점을 곧은 선으로 이으면 글씨가 각져 보인다. 점들의 가운데 점(중점)에서 중점까지를, 그 사이의 점을 휘는 기준으로 삼은 곡선으로 잇는다.
+     굵기는 필압을 그대로 쓰지 않고 앞 점의 값과 섞어(pressure 함수) 천천히 바뀌게 한다. */
+  function widthAt(stroke, p) { return stroke.w * (0.62 + 0.86 * p); }
+  /** k 번째 점이 들어왔을 때 새로 그릴 조각 */
+  function segment(stroke, k) {
+    var p = stroke.pts, i = k * 3;
     ctx.beginPath();
-    if (i === 0) { ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + 0.01, p[1]); }
-    else { ctx.moveTo(p[i - 3], p[i - 2]); ctx.lineTo(p[i], p[i + 1]); }
+    if (k === 0) { ctx.lineWidth = widthAt(stroke, p[2]); ctx.moveTo(p[0], p[1]); ctx.lineTo(p[0] + 0.01, p[1]); }
+    else if (k === 1) { ctx.lineWidth = widthAt(stroke, (p[2] + p[5]) / 2); ctx.moveTo(p[0], p[1]); ctx.lineTo((p[0] + p[3]) / 2, (p[1] + p[4]) / 2); }
+    else {
+      ctx.lineWidth = widthAt(stroke, p[i - 1]);
+      ctx.moveTo((p[i - 6] + p[i - 3]) / 2, (p[i - 5] + p[i - 2]) / 2);
+      ctx.quadraticCurveTo(p[i - 3], p[i - 2], (p[i - 3] + p[i]) / 2, (p[i - 2] + p[i + 1]) / 2);
+    }
     ctx.stroke();
   }
+  /** 획의 끝: 마지막 중점에서 마지막 점까지 */
+  function tail(stroke) {
+    var p = stroke.pts, n = p.length;
+    if (n < 6) return;
+    ctx.lineWidth = widthAt(stroke, p[n - 1]);
+    ctx.beginPath(); ctx.moveTo((p[n - 6] + p[n - 3]) / 2, (p[n - 5] + p[n - 2]) / 2); ctx.lineTo(p[n - 3], p[n - 2]); ctx.stroke();
+  }
+  function ink() { ctx.strokeStyle = getComputedStyle(cv).color; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; }
   function redraw() {
     if (!ctx) return;
     ctx.clearRect(0, 0, cv.width, cv.height);
-    ctx.strokeStyle = getComputedStyle(cv).color;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    SP.strokes.forEach(function (s) { for (var i = 0; i < s.pts.length; i += 3) segment(s, i); });
+    ink();
+    SP.strokes.forEach(function (s) { for (var k = 0; k * 3 < s.pts.length; k++) segment(s, k); tail(s); });
   }
   /** 단추와 안내 글의 모습을 지금 상태에 맞춘다 */
   function sync() {
@@ -83,14 +97,19 @@
     var area = cv.parentNode, dpr = Math.min(window.devicePixelRatio || 1, 3);
     var w = Math.max(1, area.clientWidth), h = Math.max(1, area.clientHeight);
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    ctx = cv.getContext('2d');
+    ctx = cv.getContext('2d', { desynchronized: true }) || cv.getContext('2d');   /* desynchronized: 펜 끝을 덜 늦게 따라온다(지원하는 브라우저에서) */
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     redraw(); sync();
   }
 
   /* ── 입력 ── */
-  function at(e) { var r = cv.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * 10) / 10, Math.round((e.clientY - r.top) * 10) / 10]; }
-  function pressure(e) { return e.pointerType === 'pen' && e.pressure > 0 ? Math.round(e.pressure * 100) / 100 : 0.5; }
+  function at(e) { var r = cv.getBoundingClientRect(); return [Math.round((e.clientX - r.left) * 100) / 100, Math.round((e.clientY - r.top) * 100) / 100]; }
+  /** 필압. 앞 점의 값(prev)이 있으면 그것과 섞어 굵기가 갑자기 바뀌지 않게 한다. 손가락 · 마우스는 늘 0.5 */
+  function pressure(e, prev) {
+    if (e.pointerType !== 'pen' || !(e.pressure > 0)) return prev === undefined ? 0.5 : prev;
+    var p = prev === undefined ? Math.min(e.pressure, 0.5) : prev + (e.pressure - prev) * 0.25;
+    return Math.round(p * 1000) / 1000;
+  }
   function down(e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (e.pointerType === 'pen') SP.pen = true;
@@ -105,8 +124,8 @@
       if (model.eraseAt(p[0], p[1], live.first)) { live.first = false; redraw(); sync(); }
       return;
     }
-    live = { id: e.pointerId, stroke: { w: e.pointerType === 'pen' ? 2.4 : 2.6, pts: [p[0], p[1], pressure(e)] } };
-    ctx.strokeStyle = getComputedStyle(cv).color; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    live = { id: e.pointerId, stroke: { w: e.pointerType === 'pen' ? 2.3 : 2.5, pts: [p[0], p[1], pressure(e)] } };
+    ink();
     segment(live.stroke, 0);
     sync();
   }
@@ -121,15 +140,16 @@
       var p = at(ev);
       if (live.erase) { if (model.eraseAt(p[0], p[1], live.first)) { live.first = false; changed = true; } return; }
       var pts = live.stroke.pts, n = pts.length;
-      if (p[0] === pts[n - 3] && p[1] === pts[n - 2]) return;
-      pts.push(p[0], p[1], pressure(ev));
-      segment(live.stroke, n);
+      var dx = p[0] - pts[n - 3], dy = p[1] - pts[n - 2];
+      if (dx * dx + dy * dy < 0.36) return;                    /* 0.6px 보다 가까운 점은 버린다(떨림이 선에 드러나지 않게) */
+      pts.push(p[0], p[1], pressure(ev, pts[n - 1]));
+      segment(live.stroke, n / 3);
     });
     if (changed) { redraw(); sync(); }
   }
   function up(e) {
     if (!live || e.pointerId !== live.id) return;
-    if (live.stroke) model.add(live.stroke);
+    if (live.stroke) { tail(live.stroke); model.add(live.stroke); }
     live = null;
     sync();
   }
