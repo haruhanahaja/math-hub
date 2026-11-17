@@ -2,6 +2,13 @@
    수식은 실제 KaTeX 로 그려 보고 오류가 없는지 확인한다(KaTeX 는 화면 없이도 돈다). */
 (function () {
   'use strict';
+/** 좌표평면 그림: 점이 모눈 안의 정수 점이고, 직선 · 곡선의 수가 0 이 아니다 */
+function planeOk(f) {
+  var R = f.range || 5;
+  return R >= 3 && R <= 8 && (f.points || []).every(function (q) { return Number.isInteger(q.x) && Number.isInteger(q.y) && Math.abs(q.x) <= R && Math.abs(q.y) <= R; })
+    && (!f.line || (Number.isInteger(f.line[0]) && Number.isInteger(f.line[1]) && f.line[0] !== 0 && f.line[1] !== 0)) && (!f.curve || (Number.isInteger(f.curve) && f.curve !== 0));
+}
+globalThis.planeOk = planeOk;
   load('docs/shared/vendor/katex/katex.min.js');
   var K = globalThis.katex;
   group('개념 카드');
@@ -33,7 +40,7 @@
         else if (typeof b.tex === 'string') texOk(b.tex, where);
         else if (b.figure) {
           var f = b.figure;
-          ok(f.type === 'bar' ? f.parts >= 1 && f.filled >= 0 : f.type === 'line' && f.max > (f.min || 0) && f.parts >= 1 && (f.max - (f.min || 0)) * f.parts <= 20, where + '그림 형식');
+          ok(f.type === 'bar' ? f.parts >= 1 && f.filled >= 0 : f.type === 'plane' ? planeOk(f) : f.type === 'line' && f.max > (f.min || 0) && f.parts >= 1 && (f.max - (f.min || 0)) * f.parts <= 20, where + '그림 형식');
         }
         else if (b.list) { ok(b.list.length >= 2, where + '목록은 둘 이상'); b.list.forEach(function (t) { textOk(t, where); letters += t.length; }); }
         else if (b.ex) { ok(b.ex.length >= 2, where + '예시는 둘 이상'); b.ex.forEach(function (e) { ok(e.length === 2, where + '예시는 [수식, 설명]'); texOk(e[0], where); textOk(e[1], where); letters += e[1].length; }); }

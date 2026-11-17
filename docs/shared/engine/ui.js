@@ -116,7 +116,9 @@
   /* ── 그림 ─────────────────────────────────────────────
      문제의 prompt 가 figure 를 주면 식 · 글 아래에 그린다.
      { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
-     { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가 } */
+     { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가 }
+     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d](직선 y = (n/d)x), curve: a(곡선 y = a/x) }
+       좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관) */
   MH.figure = function (f) {
     var h = '', i, j;
     if (f.type === 'bar') {
@@ -139,6 +141,39 @@
       var marked = f.mark !== undefined && f.mark !== null;        /* mark 를 안 적으면 표시 없는 수직선(개념 카드) */
       if (marked) h += '<path d="M' + x(f.mark) + ' 22 l-6 -10 h12 z" class="mk"/><text x="' + x(f.mark) + '" y="9" text-anchor="middle" class="mk">□</text>';
       return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었' + (marked ? '고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다' : '다') + '">' + h + '</svg></div>';
+    }
+    if (f.type === 'plane') {
+      var R2 = f.range || 5, SZ = 300, PAD = 18, U = (SZ - 2 * PAD) / (2 * R2), r1 = function (t) { return Math.round(t * 10) / 10; };
+      var X = function (t) { return r1(PAD + (t + R2) * U); }, Y = function (t) { return r1(PAD + (R2 - t) * U); }, minus = function (t) { return String(t).replace('-', '−'); };
+      var pts = f.points || [], say = '좌표평면';
+      for (i = -R2; i <= R2; i++) {
+        if (i === 0) continue;
+        h += '<line x1="' + X(i) + '" y1="' + Y(R2) + '" x2="' + X(i) + '" y2="' + Y(-R2) + '" class="gr"/><line x1="' + X(-R2) + '" y1="' + Y(i) + '" x2="' + X(R2) + '" y2="' + Y(i) + '" class="gr"/>';
+        h += '<text x="' + X(i) + '" y="' + (Y(0) + 12) + '" text-anchor="middle" class="tk">' + minus(i) + '</text><text x="' + (X(0) - 5) + '" y="' + (Y(i) + 3.5) + '" text-anchor="end" class="tk">' + minus(i) + '</text>';
+      }
+      h += '<line x1="' + (PAD - 12) + '" y1="' + Y(0) + '" x2="' + (SZ - PAD + 12) + '" y2="' + Y(0) + '" class="ax"/><line x1="' + X(0) + '" y1="' + (SZ - PAD + 12) + '" x2="' + X(0) + '" y2="' + (PAD - 12) + '" class="ax"/>';
+      h += '<path d="M' + (SZ - PAD + 14) + ' ' + Y(0) + ' l-7 -4 v8 z M' + X(0) + ' ' + (PAD - 14) + ' l-4 7 h8 z" class="ah"/>';
+      h += '<text x="' + (SZ - 6) + '" y="' + (Y(0) + 14) + '" text-anchor="end" class="nm">x</text><text x="' + (X(0) + 8) + '" y="11" class="nm">y</text><text x="' + (X(0) - 5) + '" y="' + (Y(0) + 12) + '" text-anchor="end" class="tk">O</text>';
+      if (f.line) {
+        var m = f.line[0] / f.line[1], xe = Math.min(R2, R2 / Math.abs(m));
+        h += '<line x1="' + X(-xe) + '" y1="' + Y(-m * xe) + '" x2="' + X(xe) + '" y2="' + Y(m * xe) + '" class="gp"/>';
+        say += '에 원점을 지나는 직선이 그려져 있다';
+      }
+      if (f.curve) {
+        [1, -1].forEach(function (sgn) {
+          var d = '', lo2 = Math.abs(f.curve) / R2, steps = 48, k, t;
+          for (k = 0; k <= steps; k++) { t = lo2 * Math.pow(R2 / lo2, k / steps); d += (k ? ' L' : 'M') + X(sgn * t) + ' ' + Y(f.curve / (sgn * t)); }
+          h += '<path d="' + d + '" class="gp"/>';
+        });
+        say += '에 원점에 대하여 대칭인 한 쌍의 곡선이 그려져 있다';
+      }
+      pts.forEach(function (q) {
+        var right = f.line ? q.x < 0 : q.x >= 0, up = q.y >= 0;          /* 직선 위의 점은 이름이 직선에 겹치지 않게 반대쪽에 쓴다 */
+        h += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="4.2" class="pt"/>';
+        if (q.label) h += '<text x="' + (X(q.x) + (right ? 8 : -8)) + '" y="' + (Y(q.y) + (up ? -7 : 16)) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pl">' + esc(q.label) + '</text>';
+      });
+      if (pts.length) say += (f.line || f.curve ? '. ' : '에 ') + pts.map(function (q) { return '점 ' + (q.label || '') + '(' + minus(q.x) + ', ' + minus(q.y) + ')'; }).join(', ') + (f.line || f.curve ? '이 표시되어 있다' : '이 찍혀 있다');
+      return '<div class="figure"><svg class="plane-fig" viewBox="0 0 ' + SZ + ' ' + SZ + '" role="img" aria-label="' + say + '">' + h + '</svg></div>';
     }
     return '';
   };
