@@ -116,7 +116,8 @@
   /* ── 그림 ─────────────────────────────────────────────
      문제의 prompt 가 figure 를 주면 식 · 글 아래에 그린다.
      { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
-     { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가 }
+     { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가,
+       ray: { at: 왼쪽 끝에서 몇 번째 눈금인가, dir: 1(오른쪽) | -1(왼쪽), open: 끝점을 뺀다(○) | 넣는다(●) } 부등식의 해의 범위 }
      { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d](직선 y = (n/d)x), curve: a(곡선 y = a/x) }
        좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관) */
   MH.figure = function (f) {
@@ -140,7 +141,13 @@
       }
       var marked = f.mark !== undefined && f.mark !== null;        /* mark 를 안 적으면 표시 없는 수직선(개념 카드) */
       if (marked) h += '<path d="M' + x(f.mark) + ' 22 l-6 -10 h12 z" class="mk"/><text x="' + x(f.mark) + '" y="9" text-anchor="middle" class="mk">□</text>';
-      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었' + (marked ? '고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다' : '다') + '">' + h + '</svg></div>';
+      var ray = f.ray, rayLabel = '';
+      if (ray) {
+        var rx = x(ray.at), end = ray.dir > 0 ? R + 8 : L - 8;
+        h += '<path d="M' + rx + ' 34 V12 H' + end + '" class="ry"/><path d="M' + end + ' 12 l' + (ray.dir > 0 ? -8 : 8) + ' -4.5 v9 z" class="ra"/><circle cx="' + rx + '" cy="34" r="5" class="rd' + (ray.open ? ' open' : '') + '"/>';
+        rayLabel = ' ' + String(ray.at / f.parts + lo).replace('-', '−') + '에 ' + (ray.open ? '속이 빈 점(○)' : '속이 찬 점(●)') + '이 있고, 거기서 ' + (ray.dir > 0 ? '오른쪽' : '왼쪽') + '으로 뻗는 선이 있다';
+      }
+      return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었' + (marked ? '고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다' : '다') + (ray ? '.' + rayLabel : '') + '">' + h + '</svg></div>';
     }
     if (f.type === 'plane') {
       var R2 = f.range || 5, SZ = 300, PAD = 18, U = (SZ - 2 * PAD) / (2 * R2), r1 = function (t) { return Math.round(t * 10) / 10; };

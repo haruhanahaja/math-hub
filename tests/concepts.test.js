@@ -40,7 +40,7 @@ globalThis.planeOk = planeOk;
         else if (typeof b.tex === 'string') texOk(b.tex, where);
         else if (b.figure) {
           var f = b.figure;
-          ok(f.type === 'bar' ? f.parts >= 1 && f.filled >= 0 : f.type === 'plane' ? planeOk(f) : f.type === 'line' && f.max > (f.min || 0) && f.parts >= 1 && (f.max - (f.min || 0)) * f.parts <= 20, where + '그림 형식');
+          ok(f.type === 'bar' ? f.parts >= 1 && f.filled >= 0 : f.type === 'plane' ? planeOk(f) : f.type === 'line' && f.max > (f.min || 0) && f.parts >= 1 && (f.max - (f.min || 0)) * f.parts <= 20 && (!f.ray || (f.ray.at >= 0 && f.ray.at <= (f.max - (f.min || 0)) * f.parts && (f.ray.dir === 1 || f.ray.dir === -1) && typeof f.ray.open === 'boolean')), where + '그림 형식');
         }
         else if (b.list) { ok(b.list.length >= 2, where + '목록은 둘 이상'); b.list.forEach(function (t) { textOk(t, where); letters += t.length; }); }
         else if (b.ex) { ok(b.ex.length >= 2, where + '예시는 둘 이상'); b.ex.forEach(function (e) { ok(e.length === 2, where + '예시는 [수식, 설명]'); texOk(e[0], where); textOk(e[1], where); letters += e[1].length; }); }

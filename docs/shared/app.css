@@ -136,6 +136,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .figure { margin-top: 14px; display: grid; gap: 6px; }
 .bar-fig { display: grid; gap: 3px; height: 32px; } .bar-fig i { border-radius: 5px; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line); } .bar-fig i.on { background: var(--brand); box-shadow: none; }
 .line-fig { width: 100%; height: auto; display: block; } .line-fig .ax { stroke: var(--ink-2); stroke-width: 1.5; } .line-fig text { fill: var(--ink-2); font-size: 13px; font-weight: 600; } .line-fig .mk { fill: var(--brand); stroke: none; font-size: 14px; }
+.line-fig .ry { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; } .line-fig .ra { fill: var(--brand); } .line-fig .rd { fill: var(--brand); stroke: var(--brand); stroke-width: 2.5; } .line-fig .rd.open { fill: var(--surface); }
 .plane-fig { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; } .plane-fig .gr { stroke: var(--line); stroke-width: 1; } .plane-fig .ax { stroke: var(--ink-2); stroke-width: 1.5; } .plane-fig .ah { fill: var(--ink-2); }
 .plane-fig .tk { fill: var(--muted); font-size: 9.5px; font-weight: 600; } .plane-fig .nm { fill: var(--ink-2); font-size: 13px; font-style: italic; font-weight: 600; } .plane-fig .gp { stroke: var(--brand); stroke-width: 2.4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .plane-fig .pt { fill: var(--brand); stroke: var(--surface); stroke-width: 1.5; } .plane-fig .pl { fill: var(--ink); font-size: 14px; font-weight: 700; }
