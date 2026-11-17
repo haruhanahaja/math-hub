@@ -97,7 +97,7 @@ MH.defineType({
 function sum(v) { return F(v.a, v.b).add(F(v.c, v.d)); }
 ```
 
-`int`, `pick`, `F`, `lcm`, `coprime` 은 엔진이 주는 도구다(`F` 는 fraction.js 로 만든 정확한 분수다: `MH.F(1, 3).add(MH.F(1, 6))`). `prompt` 는 `{ tex, text }` 말고도 그림 `figure` 를 돌려줄 수 있다: 띠 `{ type: 'bar', parts, filled }`, 수직선 `{ type: 'line', min, max, parts, mark }`(`min` 은 왼쪽 끝의 정수로 음수일 수 있고 없으면 0, `mark` 는 왼쪽 끝에서 센 눈금, `ray: { at, dir, open }` 을 적으면 부등식의 해의 범위를 그린다: `at` 눈금에 ○(open) · ● 를 찍고 `dir`(1 오른쪽, -1 왼쪽)로 뻗는 선), 좌표평면 `{ type: 'plane', range, points: [{ x, y, label }], line: [n, d], curve: a }`(모눈 한 칸이 1 이고 `range` 는 눈금의 끝으로 없으면 5, `line` 은 직선 y = (n/d)x, `curve` 는 곡선 y = a/x. B09 부터 쓴다. 그래프는 문제에 보여 주고 답은 식 · 좌표 보기나 수로 받는다). 실제로 돌아가는 예는 `docs/basic/units/a01.js` 에 있다. 템플릿 안에서는 `Math.random` 과 소수점 계산(`0.1 + 0.2` 같은 것)을 쓰지 않는다.
+`int`, `pick`, `F`, `lcm`, `coprime` 은 엔진이 주는 도구다(`F` 는 fraction.js 로 만든 정확한 분수다: `MH.F(1, 3).add(MH.F(1, 6))`). `prompt` 는 `{ tex, text }` 말고도 그림 `figure` 를 돌려줄 수 있다: 띠 `{ type: 'bar', parts, filled }`, 수직선 `{ type: 'line', min, max, parts, mark }`(`min` 은 왼쪽 끝의 정수로 음수일 수 있고 없으면 0, `mark` 는 왼쪽 끝에서 센 눈금, `ray: { at, dir, open }` 을 적으면 부등식의 해의 범위를 그린다: `at` 눈금에 ○(open) · ● 를 찍고 `dir`(1 오른쪽, -1 왼쪽)로 뻗는 선), 좌표평면 `{ type: 'plane', range, points: [{ x, y, label }], line: [n, d, k], curve: a }`(모눈 한 칸이 1 이고 `range` 는 눈금의 끝으로 없으면 5, `line` 은 직선 y = (n/d)x + k(k 는 정수인 y절편으로 없으면 0. B15 부터 쓴다), `curve` 는 곡선 y = a/x. B09 부터 쓴다. 그래프는 문제에 보여 주고 답은 식 · 좌표 보기나 수로 받는다). 실제로 돌아가는 예는 `docs/basic/units/a01.js` 에 있다. 템플릿 안에서는 `Math.random` 과 소수점 계산(`0.1 + 0.2` 같은 것)을 쓰지 않는다.
 
 ### 1.4 무작위 숫자와 조건
 

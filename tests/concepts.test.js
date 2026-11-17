@@ -6,7 +6,7 @@
 function planeOk(f) {
   var R = f.range || 5;
   return R >= 3 && R <= 8 && (f.points || []).every(function (q) { return Number.isInteger(q.x) && Number.isInteger(q.y) && Math.abs(q.x) <= R && Math.abs(q.y) <= R; })
-    && (!f.line || (Number.isInteger(f.line[0]) && Number.isInteger(f.line[1]) && f.line[0] !== 0 && f.line[1] !== 0)) && (!f.curve || (Number.isInteger(f.curve) && f.curve !== 0));
+    && (!f.line || (Number.isInteger(f.line[0]) && Number.isInteger(f.line[1]) && f.line[0] !== 0 && f.line[1] !== 0 && (f.line[2] === undefined || (Number.isInteger(f.line[2]) && Math.abs(f.line[2]) <= R)))) && (!f.curve || (Number.isInteger(f.curve) && f.curve !== 0));
 }
 globalThis.planeOk = planeOk;
   load('docs/shared/vendor/katex/katex.min.js');

@@ -118,7 +118,7 @@
      { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
      { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가,
        ray: { at: 왼쪽 끝에서 몇 번째 눈금인가, dir: 1(오른쪽) | -1(왼쪽), open: 끝점을 뺀다(○) | 넣는다(●) } 부등식의 해의 범위 }
-     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d](직선 y = (n/d)x), curve: a(곡선 y = a/x) }
+     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d, k](직선 y = (n/d)x + k. k 는 정수인 y절편이고 없으면 0), curve: a(곡선 y = a/x) }
        좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관) */
   MH.figure = function (f) {
     var h = '', i, j;
@@ -162,9 +162,10 @@
       h += '<path d="M' + (SZ - PAD + 14) + ' ' + Y(0) + ' l-7 -4 v8 z M' + X(0) + ' ' + (PAD - 14) + ' l-4 7 h8 z" class="ah"/>';
       h += '<text x="' + (SZ - 6) + '" y="' + (Y(0) + 14) + '" text-anchor="end" class="nm">x</text><text x="' + (X(0) + 8) + '" y="11" class="nm">y</text><text x="' + (X(0) - 5) + '" y="' + (Y(0) + 12) + '" text-anchor="end" class="tk">O</text>';
       if (f.line) {
-        var m = f.line[0] / f.line[1], xe = Math.min(R2, R2 / Math.abs(m));
-        h += '<line x1="' + X(-xe) + '" y1="' + Y(-m * xe) + '" x2="' + X(xe) + '" y2="' + Y(m * xe) + '" class="gp"/>';
-        say += '에 원점을 지나는 직선이 그려져 있다';
+        /* y = m x + k 를 모눈 안에서만 그린다(k 는 y절편. 없으면 원점을 지난다) */
+        var m = f.line[0] / f.line[1], k0 = f.line[2] || 0, xa = Math.max(-R2, Math.min((-R2 - k0) / m, (R2 - k0) / m)), xb = Math.min(R2, Math.max((-R2 - k0) / m, (R2 - k0) / m));
+        h += '<line x1="' + X(xa) + '" y1="' + Y(m * xa + k0) + '" x2="' + X(xb) + '" y2="' + Y(m * xb + k0) + '" class="gp"/>';
+        say += k0 ? '에 y축과 (0, ' + minus(k0) + ')에서 만나고 오른쪽 ' + (m > 0 ? '위' : '아래') + '로 향하는 직선이 그려져 있다' : '에 원점을 지나는 직선이 그려져 있다';
       }
       if (f.curve) {
         [1, -1].forEach(function (sgn) {
@@ -176,6 +177,7 @@
       }
       pts.forEach(function (q) {
         var right = f.line ? q.x < 0 : q.x >= 0, up = q.y >= 0;          /* 직선 위의 점은 이름이 직선에 겹치지 않게 반대쪽에 쓴다 */
+        if (f.line && f.line[2] !== undefined) { up = q.y < R2; right = (f.line[0] / f.line[1] < 0) === up; }   /* y절편이 있는 직선: 기울기에 따라 직선의 바깥쪽에 쓴다 */
         h += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="4.2" class="pt"/>';
         if (q.label) h += '<text x="' + (X(q.x) + (right ? 8 : -8)) + '" y="' + (Y(q.y) + (up ? -7 : 16)) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pl">' + esc(q.label) + '</text>';
       });
@@ -256,7 +258,7 @@
   function syncBoxes() {
     S.fields.forEach(function (f, i) {
       var box = document.getElementById('ans' + i);
-      if (box) { if (S.kind.show) box.innerHTML = boxHtml(f); else box.textContent = shown(f, i); box.classList.toggle('live', i === S.at); }
+      if (box) { if (S.kind.show) box.innerHTML = boxHtml(f); else box.textContent = shown(f, i); box.classList.toggle('live', i === S.at); box.classList.toggle('wordy', S.kind.layout === 'choice' && /[가-힣]/.test(f) && f.length > 12); }
     });
     var sg = document.getElementById('ans-sign');
     if (sg) sg.textContent = signHtml(S.fields[0]);
@@ -391,7 +393,8 @@
     return !/[가-힣]/.test(t) && t.length + (t.slice(1).match(/[+\-]/g) || []).length >= 6;
   }
   /** 보기가 등식(5x - 2x = 9 - 3)이면 두 칸에 들어가지 않아 줄이 바뀐다: 단추를 한 줄에 하나씩 놓는다 */
-  function rowOption(o) { return / = /.test(String(o)); }
+  /** 등식이 든 보기와 긴 한글 문장 보기(B15 의 '자연수 x의 약수 y' …)는 한 줄에 하나씩 놓는다 */
+  function rowOption(o) { return / = /.test(String(o)) || (/[가-힣]/.test(String(o)) && String(o).length > 12); }
   /** 문자가 든 분수 보기(a/2 − 4x …)는 분자 · 분모가 작게 그려져 읽기 어렵다: 크게 그린다 */
   function wideFrac(t) { return /[a-z]/.test(t.replace(/\\[a-z]+/g, '')) ? t.replace(/\\frac/g, '\\dfrac') : t; }
   function press(k) {
@@ -511,7 +514,8 @@
     var sfx = suffix(), multi = S.fields.length > 1, frac = S.kind.layout === 'fraction';
     var boxes = S.fields.map(function (f, i) {
       var label = S.labels[i];
-      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '"' + (S.kind.placeholder && !done ? ' data-ph="' + esc(S.kind.placeholder) + '"' : '') + '>' + boxHtml(shown(done ? S.final[i] : f, i)) + '</span>';
+      var held = String(done ? S.final[i] : f), wordyBox = S.kind.layout === 'choice' && /[가-힣]/.test(held) && held.length > 12 ? ' wordy' : '';   /* 긴 한글 보기를 고르면 답 칸의 글자를 줄인다 */
+      var box = '<span class="ans-box ' + (done ? S.boxClass : (i === S.at ? 'live ' : '') + S.boxClass) + wordyBox + '" id="ans' + i + '"' + (multi && !done ? ' data-act="field" data-i="' + i + '"' : '') + ' aria-label="' + label + '"' + (S.kind.placeholder && !done ? ' data-ph="' + esc(S.kind.placeholder) + '"' : '') + '>' + boxHtml(shown(done ? S.final[i] : f, i)) + '</span>';
       return multi && !frac ? '<span class="field"><small>' + label + '</small>' + box + '</span>' : box;
     });
     /* 분수: (자연수 칸) + 분자 칸 / 가로줄 / 분모 칸 */

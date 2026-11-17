@@ -129,6 +129,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .ans-box.live::after { content: ""; width: 2px; height: 30px; margin-left: 3px; background: var(--brand); animation: blink 1.1s steps(1) infinite; }
 .ans-box.good { box-shadow: inset 0 0 0 2px var(--ok); color: var(--ok); } .ans-box.bad { box-shadow: inset 0 0 0 2px var(--bad); color: var(--bad); }
 .ans-box.shake { animation: shake .3s; }
+.ans-box.wordy { height: auto; min-height: 64px; max-width: 100%; padding: 10px 16px; font-size: 17px; font-weight: 650; line-height: 1.35; letter-spacing: 0; text-align: center; word-break: keep-all; }
 .answer.multi { gap: 14px; align-items: flex-end; } .answer.multi .ans-box { min-width: 112px; } .answer .field { display: flex; flex-direction: column; align-items: center; gap: 6px; } .answer .field small { font-size: 13px; font-weight: 650; color: var(--ink-2); }
 .answer.frac { gap: 12px; margin-top: 16px; } .answer.frac .ans-box { min-width: 96px; height: 48px; font-size: 26px; }
 .answer.frac .sign { min-width: 22px; font-size: 32px; font-weight: 700; text-align: center; }
@@ -175,6 +176,7 @@ svg.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-wid
 .keys.choice.long { grid-template-columns: repeat(2, 1fr); } .keys.choice.long button { font-size: 22px; }
 .keys.choice.rows { grid-template-columns: 1fr; } .keys.choice.rows button { height: 46px; font-size: 21px; } .keys.choice.rows .k-ok { height: 58px; font-size: 18px; }
 .keys.choice.words button { font-size: 19px; font-weight: 650; word-break: keep-all; } .keys.choice.words .k-ok { font-size: 18px; }
+.keys.choice.rows.words button { height: auto; min-height: 46px; padding: 7px 10px; font-size: 16px; font-weight: 600; line-height: 1.3; } .keys.choice.rows.words .k-ok { height: 58px; font-size: 18px; }
 .keys.sgn .k-ok, .keys.sgn .k-sign { height: 52px; } .keys.sgn.wide .k-ok { grid-column: span 2; } .keys.sgn .k-sign { font-size: 28px; }
 .keys.fac .k-ok { grid-column: span 2; height: 52px; } .keys.fac .k-pow { height: 52px; font-size: 17px; font-weight: 650; color: var(--ink-2); }
 .keys .k-back { color: var(--ink-2); } .keys .k-back .ic { width: 26px; height: 26px; }

@@ -57,6 +57,7 @@ load('tests/units/b11.test.js');
 load('tests/units/b12.test.js');
 load('tests/units/b13.test.js');
 load('tests/units/b14.test.js');
+load('tests/units/b15.test.js');
 
 print('\n' + (T.fail ? '실패 ' + T.fail + '개, ' : '') + '통과 ' + T.pass + '개');
 if (T.fail) throw new Error('테스트 실패');
