@@ -46,7 +46,8 @@
     B10: ['B10.finite', 'B10.make', 'B10.cycle', 'B10.dots', 'B10.tofrac'],
     B11: ['B11.exp', 'B11.law', 'B11.mul', 'B11.div', 'B11.mixed'],
     B12: ['B12.add', 'B12.quad', 'B12.mono', 'B12.div', 'B12.mixed', 'B12.coef'],
-    B13: ['B13.prop', 'B13.sol', 'B13.basic', 'B13.paren', 'B13.count', 'B13.word']
+    B13: ['B13.prop', 'B13.sol', 'B13.basic', 'B13.paren', 'B13.count', 'B13.word'],
+    B14: ['B14.pair', 'B14.elim', 'B14.subst', 'B14.form', 'B14.param', 'B14.word']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */
