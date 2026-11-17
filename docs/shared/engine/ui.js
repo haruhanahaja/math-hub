@@ -118,7 +118,7 @@
      { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
      { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가,
        ray: { at: 왼쪽 끝에서 몇 번째 눈금인가, dir: 1(오른쪽) | -1(왼쪽), open: 끝점을 뺀다(○) | 넣는다(●) } 부등식의 해의 범위 }
-     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d, k](직선 y = (n/d)x + k. k 는 정수인 y절편이고 없으면 0), curve: a(곡선 y = a/x) }
+     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d, k](직선 y = (n/d)x + k. k 는 정수인 y절편이고 없으면 0), line2: [n, d, k](두 번째 직선), vline: p(직선 x = p), hline: q(직선 y = q), curve: a(곡선 y = a/x) }
        좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관) */
   MH.figure = function (f) {
     var h = '', i, j;
@@ -163,10 +163,18 @@
       h += '<text x="' + (SZ - 6) + '" y="' + (Y(0) + 14) + '" text-anchor="end" class="nm">x</text><text x="' + (X(0) + 8) + '" y="11" class="nm">y</text><text x="' + (X(0) - 5) + '" y="' + (Y(0) + 12) + '" text-anchor="end" class="tk">O</text>';
       if (f.line) {
         /* y = m x + k 를 모눈 안에서만 그린다(k 는 y절편. 없으면 원점을 지난다) */
-        var m = f.line[0] / f.line[1], k0 = f.line[2] || 0, xa = Math.max(-R2, Math.min((-R2 - k0) / m, (R2 - k0) / m)), xb = Math.min(R2, Math.max((-R2 - k0) / m, (R2 - k0) / m));
-        h += '<line x1="' + X(xa) + '" y1="' + Y(m * xa + k0) + '" x2="' + X(xb) + '" y2="' + Y(m * xb + k0) + '" class="gp"/>';
-        say += k0 ? '에 y축과 (0, ' + minus(k0) + ')에서 만나고 오른쪽 ' + (m > 0 ? '위' : '아래') + '로 향하는 직선이 그려져 있다' : '에 원점을 지나는 직선이 그려져 있다';
+        var seg = function (ln) {
+          var mm = ln[0] / ln[1], kk = ln[2] || 0, xa = Math.max(-R2, Math.min((-R2 - kk) / mm, (R2 - kk) / mm)), xb = Math.min(R2, Math.max((-R2 - kk) / mm, (R2 - kk) / mm));
+          return '<line x1="' + X(xa) + '" y1="' + Y(mm * xa + kk) + '" x2="' + X(xb) + '" y2="' + Y(mm * xb + kk) + '" class="gp"/>';
+        };
+        var m = f.line[0] / f.line[1], k0 = f.line[2] || 0;
+        h += seg(f.line);
+        if (f.line2) { h += seg(f.line2); say += '에 서로 만나는 두 직선이 그려져 있다'; }
+        else say += k0 ? '에 y축과 (0, ' + minus(k0) + ')에서 만나고 오른쪽 ' + (m > 0 ? '위' : '아래') + '로 향하는 직선이 그려져 있다' : '에 원점을 지나는 직선이 그려져 있다';
       }
+      /* 축에 평행한 직선: vline 은 x = (그 수), hline 은 y = (그 수) */
+      if (f.vline !== undefined) { h += '<line x1="' + X(f.vline) + '" y1="' + Y(-R2) + '" x2="' + X(f.vline) + '" y2="' + Y(R2) + '" class="gp"/>'; say += '에 점 (' + minus(f.vline) + ', 0)에서 x축과 만나고 y축에 평행한 직선이 그려져 있다'; }
+      if (f.hline !== undefined) { h += '<line x1="' + X(-R2) + '" y1="' + Y(f.hline) + '" x2="' + X(R2) + '" y2="' + Y(f.hline) + '" class="gp"/>'; say += '에 점 (0, ' + minus(f.hline) + ')에서 y축과 만나고 x축에 평행한 직선이 그려져 있다'; }
       if (f.curve) {
         [1, -1].forEach(function (sgn) {
           var d = '', lo2 = Math.abs(f.curve) / R2, steps = 48, k, t;

@@ -4,7 +4,9 @@
   'use strict';
 /** 좌표평면 그림: 점이 모눈 안의 정수 점이고, 직선 · 곡선의 수가 0 이 아니다 */
 function planeOk(f) {
-  var R = f.range || 5;
+  var R = f.range || 5, lineOk = function (l) { return Number.isInteger(l[0]) && Number.isInteger(l[1]) && l[0] !== 0 && l[1] !== 0 && (l[2] === undefined || (Number.isInteger(l[2]) && Math.abs(l[2]) <= R)); };
+  if (f.line2 && !(f.line && lineOk(f.line2))) return false;
+  if (['vline', 'hline'].some(function (k) { return f[k] !== undefined && !(Number.isInteger(f[k]) && f[k] !== 0 && Math.abs(f[k]) <= R); })) return false;
   return R >= 3 && R <= 8 && (f.points || []).every(function (q) { return Number.isInteger(q.x) && Number.isInteger(q.y) && Math.abs(q.x) <= R && Math.abs(q.y) <= R; })
     && (!f.line || (Number.isInteger(f.line[0]) && Number.isInteger(f.line[1]) && f.line[0] !== 0 && f.line[1] !== 0 && (f.line[2] === undefined || (Number.isInteger(f.line[2]) && Math.abs(f.line[2]) <= R)))) && (!f.curve || (Number.isInteger(f.curve) && f.curve !== 0));
 }
