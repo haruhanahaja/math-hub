@@ -44,7 +44,8 @@
     B08: ['B08.setup', 'B08.number', 'B08.count', 'B08.speed', 'B08.mix'],
     B09: ['B09.point', 'B09.quadrant', 'B09.direct', 'B09.inverse', 'B09.graph'],
     B10: ['B10.finite', 'B10.make', 'B10.cycle', 'B10.dots', 'B10.tofrac'],
-    B11: ['B11.exp', 'B11.law', 'B11.mul', 'B11.div', 'B11.mixed']
+    B11: ['B11.exp', 'B11.law', 'B11.mul', 'B11.div', 'B11.mixed'],
+    B12: ['B12.add', 'B12.quad', 'B12.mono', 'B12.div', 'B12.mixed', 'B12.coef']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */
