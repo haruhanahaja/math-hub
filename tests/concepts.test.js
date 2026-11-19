@@ -8,7 +8,8 @@ function planeOk(f) {
   if (f.line2 && !(f.line && lineOk(f.line2))) return false;
   if (['vline', 'hline'].some(function (k) { return f[k] !== undefined && !(Number.isInteger(f[k]) && f[k] !== 0 && Math.abs(f[k]) <= R); })) return false;
   return R >= 3 && R <= 8 && (f.points || []).every(function (q) { return Number.isInteger(q.x) && Number.isInteger(q.y) && Math.abs(q.x) <= R && Math.abs(q.y) <= R; })
-    && (!f.line || (Number.isInteger(f.line[0]) && Number.isInteger(f.line[1]) && f.line[0] !== 0 && f.line[1] !== 0 && (f.line[2] === undefined || (Number.isInteger(f.line[2]) && Math.abs(f.line[2]) <= R)))) && (!f.curve || (Number.isInteger(f.curve) && f.curve !== 0));
+    && (!f.line || (Number.isInteger(f.line[0]) && Number.isInteger(f.line[1]) && f.line[0] !== 0 && f.line[1] !== 0 && (f.line[2] === undefined || (Number.isInteger(f.line[2]) && Math.abs(f.line[2]) <= R)))) && (!f.curve || (Number.isInteger(f.curve) && f.curve !== 0))
+    && (!f.parab || (f.parab.length === 4 && f.parab.every(Number.isInteger) && f.parab[0] !== 0 && f.parab[1] >= 1 && Math.abs(f.parab[2]) <= R && Math.abs(f.parab[3]) < R));
 }
 globalThis.planeOk = planeOk;
   load('docs/shared/vendor/katex/katex.min.js');

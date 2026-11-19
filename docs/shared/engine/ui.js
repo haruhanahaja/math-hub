@@ -118,7 +118,7 @@
      { type: 'bar', parts: 한 띠를 나눈 칸 수, filled: 색칠한 칸 수 }  — 칸이 parts 보다 많으면 띠를 여러 개 그린다(띠 하나가 1)
      { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가,
        ray: { at: 왼쪽 끝에서 몇 번째 눈금인가, dir: 1(오른쪽) | -1(왼쪽), open: 끝점을 뺀다(○) | 넣는다(●) } 부등식의 해의 범위 }
-     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d, k](직선 y = (n/d)x + k. k 는 정수인 y절편이고 없으면 0), line2: [n, d, k](두 번째 직선), vline: p(직선 x = p), hline: q(직선 y = q), curve: a(곡선 y = a/x) }
+     { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d, k](직선 y = (n/d)x + k. k 는 정수인 y절편이고 없으면 0), line2: [n, d, k](두 번째 직선), vline: p(직선 x = p), hline: q(직선 y = q), curve: a(곡선 y = a/x), parab: [n, d, p, q](포물선 y = (n/d)(x − p)² + q) }
        좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관) */
   MH.figure = function (f) {
     var h = '', i, j;
@@ -183,13 +183,20 @@
         });
         say += '에 원점에 대하여 대칭인 한 쌍의 곡선이 그려져 있다';
       }
+      /* 포물선 y = (an/ad)(x − p)² + q 를 모눈 안에서만 그린다 */
+      if (f.parab) {
+        var pa = f.parab[0] / f.parab[1], pp = f.parab[2] || 0, pq = f.parab[3] || 0, pw = Math.sqrt(((pa > 0 ? R2 : -R2) - pq) / pa), px0 = Math.max(-R2, pp - pw), px1 = Math.min(R2, pp + pw), pd = '', pk, px;
+        for (pk = 0; pk <= 60; pk++) { px = px0 + (px1 - px0) * pk / 60; pd += (pk ? ' L' : 'M') + X(px) + ' ' + Y(pa * (px - pp) * (px - pp) + pq); }
+        h += '<path d="' + pd + '" class="gp"/>';
+        say += '에 꼭짓점이 (' + minus(pp) + ', ' + minus(pq) + ')이고 ' + (pa > 0 ? '아래로' : '위로') + ' 볼록한 포물선이 그려져 있다';
+      }
       pts.forEach(function (q) {
         var right = f.line ? q.x < 0 : q.x >= 0, up = q.y >= 0;          /* 직선 위의 점은 이름이 직선에 겹치지 않게 반대쪽에 쓴다 */
         if (f.line && f.line[2] !== undefined) { up = q.y < R2; right = (f.line[0] / f.line[1] < 0) === up; }   /* y절편이 있는 직선: 기울기에 따라 직선의 바깥쪽에 쓴다 */
         h += '<circle cx="' + X(q.x) + '" cy="' + Y(q.y) + '" r="4.2" class="pt"/>';
         if (q.label) h += '<text x="' + (X(q.x) + (right ? 8 : -8)) + '" y="' + (Y(q.y) + (up ? -7 : 16)) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pl">' + esc(q.label) + '</text>';
       });
-      if (pts.length) say += (f.line || f.curve ? '. ' : '에 ') + pts.map(function (q) { return '점 ' + (q.label || '') + '(' + minus(q.x) + ', ' + minus(q.y) + ')'; }).join(', ') + (f.line || f.curve ? '이 표시되어 있다' : '이 찍혀 있다');
+      if (pts.length) say += (f.line || f.curve || f.parab ? '. ' : '에 ') + pts.map(function (q) { return '점 ' + (q.label || '') + '(' + minus(q.x) + ', ' + minus(q.y) + ')'; }).join(', ') + (f.line || f.curve || f.parab ? '이 표시되어 있다' : '이 찍혀 있다');
       return '<div class="figure"><svg class="plane-fig" viewBox="0 0 ' + SZ + ' ' + SZ + '" role="img" aria-label="' + say + '">' + h + '</svg></div>';
     }
     return '';
