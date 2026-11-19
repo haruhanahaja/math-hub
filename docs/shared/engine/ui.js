@@ -119,7 +119,11 @@
      { type: 'line', min: 왼쪽 끝의 정수(없으면 0), max: 오른쪽 끝의 정수, parts: 1 을 나눈 칸 수, mark: 왼쪽 끝에서 몇 번째 눈금인가,
        ray: { at: 왼쪽 끝에서 몇 번째 눈금인가, dir: 1(오른쪽) | -1(왼쪽), open: 끝점을 뺀다(○) | 넣는다(●) } 부등식의 해의 범위 }
      { type: 'plane', range: 눈금의 끝(−range ~ range, 없으면 5), points: [{ x, y, label }], line: [n, d, k](직선 y = (n/d)x + k. k 는 정수인 y절편이고 없으면 0), line2: [n, d, k](두 번째 직선), vline: p(직선 x = p), hline: q(직선 y = q), curve: a(곡선 y = a/x), parab: [n, d, p, q](포물선 y = (n/d)(x − p)² + q) }
-       좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관) */
+       좌표평면. 모눈 한 칸이 1 이다. 그리는 자리만 정하는 것이라 화면 좌표는 소수로 계산한다(답 계산과 무관)
+     { type: 'geo', h: 높이(없으면 200. 폭은 300), alt: 그림을 말로 풀어 쓴 글, items: [조각 …] }  도형 그림(B23 부터). 조각은 배열이다:
+       ['seg', x1, y1, x2, y2, 점선?] 선분 · ['poly', [x, y, x, y, …], 색칠?] 다각형 · ['circle', cx, cy, r] 원 · ['sector', cx, cy, r, 도1, 도2] 부채꼴
+       ['arc', cx, cy, r, 도1, 도2] 각 표시(호) · ['sq', x, y, 도] 직각 표시 · ['tick', x1, y1, x2, y2] 길이가 같다는 표시 · ['dot', x, y] 점 · ['text', x, y, 글] 글자
+       좌표는 화면 좌표(아래쪽이 +y), 각도는 오른쪽(0°)에서 시계 반대 방향이고 도1 < 도2 이다. 좌표는 MH.geo(num.js)로 정한다 */
   MH.figure = function (f) {
     var h = '', i, j;
     if (f.type === 'bar') {
@@ -148,6 +152,28 @@
         rayLabel = ' ' + String(ray.at / f.parts + lo).replace('-', '−') + '에 ' + (ray.open ? '속이 빈 점(○)' : '속이 찬 점(●)') + '이 있고, 거기서 ' + (ray.dir > 0 ? '오른쪽' : '왼쪽') + '으로 뻗는 선이 있다';
       }
       return '<div class="figure"><svg class="line-fig" viewBox="0 0 ' + W + ' 68" role="img" aria-label="' + String(lo).replace('-', '−') + '부터 ' + f.max + '까지의 수직선. 1을 똑같이 ' + f.parts + '칸으로 나누었' + (marked ? '고, 왼쪽 끝에서 ' + f.mark + '번째 눈금에 □ 표시가 있다' : '다') + (ray ? '.' + rayLabel : '') + '">' + h + '</svg></div>';
+    }
+    if (f.type === 'geo') {
+      var GH = f.h || 200, RD = Math.PI / 180, g1 = function (t) { return Math.round(t * 10) / 10; };
+      var gp = function (x, y, r, d) { return g1(x + r * Math.cos(d * RD)) + ' ' + g1(y - r * Math.sin(d * RD)); };
+      f.items.forEach(function (it) {
+        var k = it[0], big, mx, my, len, ux, uy;
+        if (k === 'seg') h += '<line x1="' + it[1] + '" y1="' + it[2] + '" x2="' + it[3] + '" y2="' + it[4] + '" class="' + (it[5] ? 'gd' : 'gs') + '"/>';
+        else if (k === 'poly') h += '<polygon points="' + it[1].join(' ') + '" class="' + (it[2] ? 'gf' : 'go') + '"/>';
+        else if (k === 'circle') h += '<circle cx="' + it[1] + '" cy="' + it[2] + '" r="' + it[3] + '" class="go"/>';
+        else if (k === 'sector' || k === 'arc') {
+          big = it[5] - it[4] > 180 ? 1 : 0;
+          h += '<path d="' + (k === 'sector' ? 'M' + it[1] + ' ' + it[2] + ' L' : 'M') + gp(it[1], it[2], it[3], it[4]) + ' A' + it[3] + ' ' + it[3] + ' 0 ' + big + ' 0 ' + gp(it[1], it[2], it[3], it[5]) + (k === 'sector' ? ' Z' : '') + '" class="' + (k === 'sector' ? 'gf' : 'ga') + '"/>';
+        }
+        else if (k === 'sq') h += '<path d="M' + gp(it[1], it[2], 9, it[3]) + ' L' + gp(it[1], it[2], 12.7, it[3] + 45) + ' L' + gp(it[1], it[2], 9, it[3] + 90) + '" class="ga"/>';
+        else if (k === 'tick') {
+          mx = (it[1] + it[3]) / 2; my = (it[2] + it[4]) / 2; len = Math.sqrt((it[3] - it[1]) * (it[3] - it[1]) + (it[4] - it[2]) * (it[4] - it[2])) || 1; ux = -(it[4] - it[2]) / len * 5; uy = (it[3] - it[1]) / len * 5;
+          h += '<line x1="' + g1(mx - ux) + '" y1="' + g1(my - uy) + '" x2="' + g1(mx + ux) + '" y2="' + g1(my + uy) + '" class="ga"/>';
+        }
+        else if (k === 'dot') h += '<circle cx="' + it[1] + '" cy="' + it[2] + '" r="3" class="gdot"/>';
+        else if (k === 'text') h += '<text x="' + it[1] + '" y="' + it[2] + '" text-anchor="middle" dominant-baseline="central" class="gt' + (/^[a-zA-Z]$/.test(it[3]) ? ' gi' : '') + '">' + esc(String(it[3]).replace(/-/g, '−')) + '</text>';
+      });
+      return '<div class="figure"><svg class="geo-fig" viewBox="0 0 300 ' + GH + '" role="img" aria-label="' + esc(f.alt) + '">' + h + '</svg></div>';
     }
     if (f.type === 'plane') {
       var R2 = f.range || 5, SZ = 300, PAD = 18, U = (SZ - 2 * PAD) / (2 * R2), r1 = function (t) { return Math.round(t * 10) / 10; };

@@ -12,6 +12,23 @@ function planeOk(f) {
     && (!f.parab || (f.parab.length === 4 && f.parab.every(Number.isInteger) && f.parab[0] !== 0 && f.parab[1] >= 1 && Math.abs(f.parab[2]) <= R && Math.abs(f.parab[3]) < R));
 }
 globalThis.planeOk = planeOk;
+/** 도형 그림: 설명 글이 있고, 조각마다 아는 종류이고, 좌표가 상자(300 × h) 안의 수이고, 각도는 도1 < 도2 이다 */
+function geoOk(f) {
+  var H = f.h || 200, num = function (v) { return typeof v === 'number' && isFinite(v); }, inX = function (v) { return num(v) && v >= 0 && v <= 300; }, inY = function (v) { return num(v) && v >= 0 && v <= H; };
+  if (!(H >= 80 && H <= 300 && typeof f.alt === 'string' && f.alt.length >= 10 && Array.isArray(f.items) && f.items.length >= 1)) return false;
+  return f.items.every(function (it) {
+    var k = it[0];
+    if (k === 'seg' || k === 'tick') return inX(it[1]) && inY(it[2]) && inX(it[3]) && inY(it[4]) && !(it[1] === it[3] && it[2] === it[4]);
+    if (k === 'poly') return Array.isArray(it[1]) && it[1].length >= 6 && it[1].length % 2 === 0 && it[1].every(function (v, i) { return i % 2 ? inY(v) : inX(v); });
+    if (k === 'circle') return inX(it[1] - it[3]) && inX(it[1] + it[3]) && inY(it[2] - it[3]) && inY(it[2] + it[3]) && it[3] > 0;
+    if (k === 'sector' || k === 'arc') return inX(it[1]) && inY(it[2]) && it[3] > 0 && num(it[4]) && num(it[5]) && it[4] < it[5] && it[5] - it[4] < 360;
+    if (k === 'sq') return inX(it[1]) && inY(it[2]) && num(it[3]);
+    if (k === 'dot') return inX(it[1]) && inY(it[2]);
+    if (k === 'text') return it[1] >= 6 && it[1] <= 294 && it[2] >= 6 && it[2] <= H - 6 && typeof it[3] === 'string' && it[3].length >= 1 && it[3].length <= 12;
+    return false;
+  });
+}
+globalThis.geoOk = geoOk;
   load('docs/shared/vendor/katex/katex.min.js');
   var K = globalThis.katex;
   group('개념 카드');
@@ -43,7 +60,7 @@ globalThis.planeOk = planeOk;
         else if (typeof b.tex === 'string') texOk(b.tex, where);
         else if (b.figure) {
           var f = b.figure;
-          ok(f.type === 'bar' ? f.parts >= 1 && f.filled >= 0 : f.type === 'plane' ? planeOk(f) : f.type === 'line' && f.max > (f.min || 0) && f.parts >= 1 && (f.max - (f.min || 0)) * f.parts <= 20 && (!f.ray || (f.ray.at >= 0 && f.ray.at <= (f.max - (f.min || 0)) * f.parts && (f.ray.dir === 1 || f.ray.dir === -1) && typeof f.ray.open === 'boolean')), where + '그림 형식');
+          ok(f.type === 'bar' ? f.parts >= 1 && f.filled >= 0 : f.type === 'plane' ? planeOk(f) : f.type === 'geo' ? geoOk(f) : f.type === 'line' && f.max > (f.min || 0) && f.parts >= 1 && (f.max - (f.min || 0)) * f.parts <= 20 && (!f.ray || (f.ray.at >= 0 && f.ray.at <= (f.max - (f.min || 0)) * f.parts && (f.ray.dir === 1 || f.ray.dir === -1) && typeof f.ray.open === 'boolean')), where + '그림 형식');
         }
         else if (b.list) { ok(b.list.length >= 2, where + '목록은 둘 이상'); b.list.forEach(function (t) { textOk(t, where); letters += t.length; }); }
         else if (b.ex) { ok(b.ex.length >= 2, where + '예시는 둘 이상'); b.ex.forEach(function (e) { ok(e.length === 2, where + '예시는 [수식, 설명]'); texOk(e[0], where); textOk(e[1], where); letters += e[1].length; }); }

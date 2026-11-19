@@ -55,7 +55,8 @@
     B19: ['B19.expand', 'B19.square', 'B19.conj', 'B19.xab', 'B19.coef', 'B19.apply'],
     B20: ['B20.common', 'B20.square', 'B20.diff', 'B20.xbc', 'B20.axbc', 'B20.value'],
     B21: ['B21.root', 'B21.factor', 'B21.sqrt', 'B21.complete', 'B21.formula', 'B21.apply'],
-    B22: ['B22.value', 'B22.basic', 'B22.shift', 'B22.vertex', 'B22.standard', 'B22.read']
+    B22: ['B22.value', 'B22.basic', 'B22.shift', 'B22.vertex', 'B22.standard', 'B22.read'],
+    B23: ['B23.angle', 'B23.triangle', 'B23.polygon', 'B23.quad', 'B23.area', 'B23.circle']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */

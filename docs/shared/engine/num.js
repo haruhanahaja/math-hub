@@ -55,4 +55,21 @@
     var first = p[0] === '으로' ? (f !== '' && f !== 'ㄹ') : f !== '';
     return String(word) + (first ? p[0] : p[1]);
   };
+
+  /* ── 도형 그림(figure 'geo')의 좌표를 정하는 도구 ──
+     그리는 자리만 정한다. 화면 좌표는 소수로 계산해 정수로 반올림한다. 답 계산에는 쓰지 않는다.
+     화면은 아래쪽이 +y 이고, 각도는 오른쪽(0°)에서 시계 반대 방향으로 잰다. */
+  var RAD = Math.PI / 180;
+  MH.geo = {
+    /** 점 (x, y) 에서 deg 방향으로 r 만큼 간 점 */
+    polar: function (x, y, r, deg) { return [Math.round(x + r * Math.cos(deg * RAD)), Math.round(y - r * Math.sin(deg * RAD))]; },
+    /** 점 (x, y) 에서 deg 방향으로 가다가 위로 dy 만큼 올라간 곳의 점(dy 가 음수이면 내려간 곳) */
+    reach: function (x, y, deg, dy) { return [Math.round(x + dy / Math.tan(deg * RAD)), Math.round(y - dy)]; },
+    /** 밑변이 아래에 놓이고 두 밑각이 degA(왼쪽) · degB(오른쪽)인 삼각형을 상자 (x0, y0, w, h) 안에 맞춘다 → [A, B, C(위 꼭짓점)] */
+    tri: function (degA, degB, x0, y0, w, h) {
+      var cy = 1 / (1 / Math.tan(degA * RAD) + 1 / Math.tan(degB * RAD)), cx = cy / Math.tan(degA * RAD), lo = Math.min(0, cx), hi = Math.max(1, cx);
+      var s = Math.min(w / (hi - lo), h / cy), ox = x0 + (w - s * (hi - lo)) / 2 - s * lo, oy = y0 + h - (h - s * cy) / 2;
+      return [[Math.round(ox), Math.round(oy)], [Math.round(ox + s), Math.round(oy)], [Math.round(ox + s * cx), Math.round(oy - s * cy)]];
+    }
+  };
 })();
