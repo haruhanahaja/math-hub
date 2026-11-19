@@ -403,7 +403,8 @@
   }
   /** 보기가 등식(5x - 2x = 9 - 3)이면 두 칸에 들어가지 않아 줄이 바뀐다: 단추를 한 줄에 하나씩 놓는다 */
   /** 등식이 든 보기와 긴 한글 문장 보기(B15 의 '자연수 x의 약수 y' …)는 한 줄에 하나씩 놓는다 */
-  function rowOption(o) { return / = /.test(String(o)) || (/[가-힣]/.test(String(o)) && String(o).length > 12); }
+  /** 항이 5개 이상인 식(B19 의 'x^{2} - 3xy + 5x - 3y + 4')도 두 칸에 들어가지 않는다 */
+  function rowOption(o) { return / = /.test(String(o)) || (/[가-힣]/.test(String(o)) && String(o).length > 12) || (String(o).match(/ [+-] /g) || []).length >= 4; }
   /** 문자가 든 분수 보기(a/2 − 4x …)는 분자 · 분모가 작게 그려져 읽기 어렵다: 크게 그린다 */
   function wideFrac(t) { return /[a-z]/.test(t.replace(/\\[a-z]+/g, '')) ? t.replace(/\\frac/g, '\\dfrac') : t; }
   function press(k) {
