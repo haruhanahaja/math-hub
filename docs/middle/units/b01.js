@@ -308,7 +308,7 @@
   };
   var firstHint = function (v) {
     var e = listOf(v)[0];
-    return v.shown ? null : '먼저 각 수를 소인수분해해요. $' + val(e) + ' = ' + etex(e) + '$ 이에요. 다른 수도 같은 방법으로 해 보세요.';
+    return v.shown ? null : '먼저 각 수를 소인수분해해요: $' + val(e) + ' = ' + etex(e) + '$. 다른 수도 같은 방법으로 해 보세요.';
   };
   /** 입력을 직접 보고 판단하는 실수: 공약수(공배수)지만 가장 크지(작지) 않음 · 일부 수의 약수(배수)일 뿐임 */
   var looseMistakes = function (isGcd) {

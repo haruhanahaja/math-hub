@@ -124,7 +124,7 @@
     if (q.t === 'add') {
       n = q.n; m = q.m; x = q.v; T = n * m + x; ans = T / (n + 1);
       w['simple-average'] = (m + x) % 2 === 0 ? (m + x) / 2 : null; w.unchanged = m; w['not-recounted'] = T % n === 0 ? T / n : null; w.total = T;
-      return { text: c.who + ' ' + n + '명의 ' + c.what + '의 평균은 ' + m + josa(u, '이에요/예요') + '. 여기에 ' + josa(c.what, '이/가') + ' ' + x + u + '인 ' + c.who + ' 한 명이 더 들어왔어요. ' + (n + 1) + '명의 평균을 구하세요.', ans: ans, wrong: w, check: isInt(ans) && x >= 1 && x !== m,
+      return { text: c.who + ' ' + n + '명의 ' + c.what + '의 평균은 ' + m + josa(u, '이에요/예요') + '. 여기에 ' + josa(c.what, '이/가') + ' ' + x + u + '인 ' + c.who + ' 한 명이 더 들어왔어요. ' + (n + 1) + '명의 평균을 구하세요.', ans: ans, wrong: w, check: isInt(ans) && x >= c.lo && x <= c.hi && x !== m,
         hints: ['사람이 늘면 합과 개수가 둘 다 바뀌어요. 그래서 평균 ' + m + '에 새 값을 바로 섞어서 계산할 수 없어요. 먼저 평균을 전체 합으로 되돌려요. ' + n + '명이 똑같이 ' + m + u + '씩이라고 생각하면 합은 $' + m + ' \\times ' + n + '$' + E(n) + '.',
           '① 처음 ' + n + '명의 합을 구해요: $' + m + ' \\times ' + n + '$. ② 새로 들어온 한 명의 값 ' + nj(x, '을/를') + ' 더해서 ' + (n + 1) + '명의 합을 만들어요. ③ 그 합을 새 인원수로 나눠요.',
           '처음 ' + n + '명의 합은 ' + (n * m) + E(n * m) + '. 여기에 ' + nj(x, '을/를') + ' 더한 것이 ' + (n + 1) + '명의 합이에요. 나누는 수는 ' + nj(n, '이/가') + ' 아니라 한 명 늘어난 인원수라는 것에 주의해요.'],
@@ -141,7 +141,7 @@
     }
     n = q.n; m = q.m; x = q.v; k = q.w; ans = m + (x - k) / n; T = n * m;
     w['not-divided'] = m + (x - k); w.unchanged = m; w.reversed = m - (x - k) / n; w.total = T - k + x;
-    return { text: c.who + ' ' + n + '명의 ' + c.what + '의 평균을 구했더니 ' + m + josa(u, '이었어요/였어요') + '. 그런데 한 명의 값을 잘못 적은 것을 알았어요. 잘못 적은 값은 ' + k + u + ', 바른 값은 ' + x + josa(u, '이에요/예요') + '. 바르게 고친 평균을 구하세요.', ans: ans, wrong: w, check: isInt(ans) && ans >= 1 && x >= 1 && k >= 1 && x !== k,
+    return { text: c.who + ' ' + n + '명의 ' + c.what + '의 평균을 구했더니 ' + m + josa(u, '이었어요/였어요') + '. 그런데 한 명의 값을 잘못 적은 것을 알았어요. 잘못 적은 값은 ' + k + u + ', 바른 값은 ' + x + josa(u, '이에요/예요') + '. 바르게 고친 평균을 구하세요.', ans: ans, wrong: w, check: isInt(ans) && ans >= c.lo && ans <= c.hi && x >= c.lo && x <= c.hi && k >= 1 && x !== k,
       hints: ['값 하나가 바뀌면 전체 합이 그만큼 바뀌어요. 평균은 그 바뀐 양을 모든 사람이 똑같이 나누어 가진 만큼만 움직여요. 그래서 먼저 평균을 전체 합으로 되돌린 다음, 합을 고치고, 다시 인원수로 나눠요.',
         '① 잘못 구한 합을 되살려요: $' + m + ' \\times ' + n + '$. ② 이 합에서 잘못 적은 값 ' + nj(k, '을/를') + ' 빼고 바른 값 ' + nj(x, '을/를') + ' 더해요. ③ 고친 합을 ' + nj(n, '으로/로') + ' 나눠요.',
         '잘못 구한 합은 ' + T + E(T) + '. 바른 값은 잘못 적은 값보다 ' + abs(x - k) + '만큼 ' + (x > k ? '커요' : '작아요') + '. 그래서 합도 그만큼 ' + (x > k ? '늘어요' : '줄어요') + '. 고친 합을 ' + n + '명이 똑같이 나누어 가지면 돼요.'],
@@ -150,9 +150,10 @@
   var meanData = function (r, list, lo, hi) { var c = r.pick(list), n = r.int(lo, hi); return { c: c, d: draw(r, CTX[c], n, function (a) { return sum(a) % n === 0 && spreadOut(a); }) }; };
   var meanUse = function (r) {
     var t = r.pick(['add', 'merge', 'fix']), ci = r.pick(MOST), c = CTX[ci], n, m, k;
-    if (t === 'add') { n = r.int(3, 9); m = r.int(c.lo + 2, c.hi); k = r.pick([-2, -1, 1, 2, 3]); return { t: t, c: ci, n: n, m: m, v: m + k * (n + 1) }; }
+    /* 새로 들어온 값도 그 상황에서 있을 법한 범위(lo ~ hi) 안에 둔다(수면 시간이 40시간이 되지 않게) */
+    if (t === 'add') return until(function () { n = r.int(3, 9); m = r.int(c.lo + 1, c.hi - 1); k = r.pick([-2, -1, 1, 2, 3]); return { t: t, c: ci, n: n, m: m, v: m + k * (n + 1) }; }, function (q) { return q.v >= c.lo && q.v <= c.hi; });
     if (t === 'merge') return until(function () { return { t: t, c: ci, a: r.int(2, 8), b: r.int(2, 8), p: r.int(c.lo + 1, c.hi), q: r.int(c.lo + 1, c.hi) }; }, function (q) { return q.a !== q.b && q.p !== q.q && (q.a * q.p + q.b * q.q) % (q.a + q.b) === 0; });
-    n = r.int(4, 6); m = r.int(c.lo + 3, c.hi - 1); k = r.pick([-2, -1, -1, 1, 1, 2]); return until(function () { var wv = r.int(c.lo, c.hi); return { t: t, c: ci, n: n, m: m, w: wv, v: wv + k * n }; }, function (q) { return q.v >= c.lo && q.v <= c.hi + 2; });
+    return until(function () { var wv = r.int(c.lo, c.hi); n = r.int(4, 6); m = r.int(c.lo + 3, c.hi - 1); k = r.pick([-2, -1, -1, 1, 1, 2]); return { t: t, c: ci, n: n, m: m, w: wv, v: wv + k * n }; }, function (q) { return q.v >= c.lo && q.v <= c.hi; });
   };
   numQ({
     id: 'B28.mean', title: '평균', build: meanBuild,

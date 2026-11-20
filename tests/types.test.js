@@ -9,12 +9,12 @@
     group('유형 ' + id + ' — ' + def.title);
 
     def.levels.forEach(function (lv, level) {
-      var seen = {}, made = 0, tag = id + ' ' + level + '단계';
+      var seen = {}, made = 0, tries = 0, tag = id + ' ' + level + '단계';
       for (var seed = 1; seed <= N; seed++) {
         var p, where = tag + ' 씨앗 ' + seed + ': ';
         /* 생성: 다시 뽑기 한도 안에 만들어진다 */
         try { p = MH.makeProblem(id, level, seed); } catch (e) { ok(false, where + e.message); continue; }
-        made++;
+        made++; tries += MH.lastTries;
         var v = p.v, ctx = p.ctx, prompt = def.prompt(v, ctx);
         seen[JSON.stringify(prompt)] = 1;
 
@@ -58,6 +58,8 @@
         /* 재현: 같은 씨앗이면 같은 문제 */
         ok(JSON.stringify(MH.makeProblem(id, level, seed).v) === JSON.stringify(v), where + '같은 씨앗인데 다른 문제');
       }
+      /* 조건이 너무 빡빡하지 않다: 문제 하나를 만드는 데 평균 50번 넘게 다시 뽑으면, 테스트하지 않은 씨앗에서 한도를 넘길 수 있다 */
+      ok(made > 0 && tries / made <= 50, tag + ': 조건이 너무 빡빡함(문제 하나에 평균 ' + (made ? Math.round(tries / made) : '?') + '번 뽑음)');
       /* 다양성: 서로 다른 문제가 충분히 많다 */
       var distinct = Object.keys(seen).length;
       ok(distinct >= (lv.minDistinct || 300), tag + ': 서로 다른 문제가 ' + distinct + '개뿐');

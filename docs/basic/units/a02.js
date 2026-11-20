@@ -15,9 +15,9 @@
   var ADDED = { id: 'added', wrong: function (v) { return v.a + v.b; },
     explain: function (v) { return '두 수를 더했어요. ' + v.a + ' × ' + josa(v.b, '은/는') + ' ' + josa(v.a, '을/를') + ' ' + v.b + '번 더한다는 뜻이에요. ' + v.a + ' + ' + v.b + ' 와는 달라요.'; } };
   var ONE_LESS = { id: 'one-less', wrong: function (v) { return v.b >= 2 ? v.a * (v.b - 1) : null; },
-    explain: function (v) { return v.a * (v.b - 1) + '은 ' + v.a + ' × ' + (v.b - 1) + ' 이에요. ' + v.a + '씩 한 번 덜 뛰어 셌어요. 거기에 ' + josa(v.a, '을/를') + ' 한 번 더 더해야 ' + v.a + ' × ' + v.b + ' 의 답이 돼요.'; } };
+    explain: function (v) { return v.a * (v.b - 1) + '은 ' + v.a + ' × ' + josa((v.b - 1), '이에요/예요') + '. ' + v.a + '씩 한 번 덜 뛰어 셌어요. 거기에 ' + josa(v.a, '을/를') + ' 한 번 더 더해야 ' + v.a + ' × ' + v.b + ' 의 답이 돼요.'; } };
   var ONE_MORE = { id: 'one-more', wrong: function (v) { return v.a * (v.b + 1); },
-    explain: function (v) { return v.a * (v.b + 1) + '은 ' + v.a + ' × ' + (v.b + 1) + ' 이에요. ' + v.a + '씩 한 번 더 뛰어 셌어요. ' + v.b + '번만 세야 해요.'; } };
+    explain: function (v) { return v.a * (v.b + 1) + '은 ' + v.a + ' × ' + josa((v.b + 1), '이에요/예요') + '. ' + v.a + '씩 한 번 더 뛰어 셌어요. ' + v.b + '번만 세야 해요.'; } };
   var SAME_TABLE = { id: 'same-table',
     match: function (v, raw) { var n = MH.kinds.int.parse(raw); return n !== null && !!(inTable(v.a, n, v.b) || inTable(v.b, n, v.a)); },
     explain: function (v, ctx, n) {
@@ -108,8 +108,8 @@
       return [
         v.a + '단에서 ' + josa(v.p, '이/가') + ' 나오는 곳을 찾는 문제예요. 곱하는 순서는 바뀌어도 답이 같아요.',
         v.a + '씩 뛰어 세면서 ' + josa(v.p, '이/가') + ' 나올 때까지 몇 번 셌는지 세어 보세요.',
-        v.p > v.a * 5 ? v.a + ' × 5 = ' + v.a * 5 + ' 예요. ' + josa(v.p, '은/는') + ' 그보다 크니까 □는 5보다 커요.'
-          : v.p < v.a * 5 ? v.a + ' × 5 = ' + v.a * 5 + ' 예요. ' + josa(v.p, '은/는') + ' 그보다 작으니까 □는 5보다 작아요.'
+        v.p > v.a * 5 ? v.a + ' × 5 = ' + josa(v.a * 5, '이에요/예요') + '. ' + josa(v.p, '은/는') + ' 그보다 크니까 □는 5보다 커요.'
+          : v.p < v.a * 5 ? v.a + ' × 5 = ' + josa(v.a * 5, '이에요/예요') + '. ' + josa(v.p, '은/는') + ' 그보다 작으니까 □는 5보다 작아요.'
             : v.a + '단을 처음부터 차례로 외워 보세요.'
       ];
     },
@@ -161,7 +161,7 @@
     hints: function (v) {
       return [
         '같은 수가 여러 묶음 있을 때는 곱셈을 써요.',
-        v.a + '씩 ' + v.b + '묶음이니까 식으로 쓰면 ' + v.a + ' × ' + v.b + ' 예요.',
+        v.a + '씩 ' + v.b + '묶음이니까 식으로 쓰면 ' + v.a + ' × ' + josa(v.b, '이에요/예요') + '.',
         v.a + '씩 ' + v.b + '번 뛰어 세어 보세요.'
       ];
     },
@@ -172,7 +172,7 @@
     },
     mistakes: [
       { id: 'added', wrong: ADDED.wrong,
-        explain: function (v, ctx) { return '두 수를 더했어요. ' + v.a + ctx.unit + '씩 ' + v.b + '묶음은 ' + josa(v.a, '을/를') + ' ' + v.b + '번 더하는 것이라서 ' + v.a + ' × ' + v.b + ' 로 계산해요.'; } },
+        explain: function (v, ctx) { return '두 수를 더했어요. ' + v.a + ctx.unit + '씩 ' + v.b + '묶음은 ' + josa(v.a, '을/를') + ' ' + v.b + '번 더하는 것이라서 ' + v.a + ' × ' + josa(v.b, '으로/로') + ' 계산해요.'; } },
       ONE_LESS, ONE_MORE, SAME_TABLE
     ]
   });

@@ -102,7 +102,7 @@
       if (q.ask === 'coef') { t = cTerm(q, q.of); say = '문자 부분이 $' + q.of + '$인 항을 찾아요: $' + (t[0] < 0 ? '-' : '') + body(t) + '$. ' + (abs(t[0]) === 1 ? '문자 앞에 수가 없으니 ' + (t[0] < 0 ? '−1' : '1') + '이 생략된 것이에요. ' : '문자 앞의 수를 부호와 함께 읽어요. ') + '계수는 ' + josa(shown, '이에요/예요') + '.'; }
       else if (q.ask === 'const') say = '문자 없이 수만 있는 항을 부호와 함께 읽어요. 상수항은 ' + josa(shown, '이에요/예요') + '.';
       else if (q.ask === 'count') say = '항을 세면 모두 ' + shown + '개예요. 상수항도 항이에요.';
-      else say = '항마다 문자가 곱해진 횟수는 차례로 ' + q.t.map(function (x) { return degOf(x[1]); }).join(', ') + '이에요. 가장 큰 것이 차수라서, 차수는 ' + josa(shown, '이에요/예요') + '.';
+      else say = '항마다 문자가 곱해진 횟수는 차례로 ' + josa(q.t.map(function (x) { return degOf(x[1]); }).join(', '), '이에요/예요') + '. 가장 큰 것이 차수라서, 차수는 ' + josa(shown, '이에요/예요') + '.';
       return [{ say: '식을 항으로 나눠요(−는 뒤의 항에 붙여요): ' + cList(q) }, { say: say, value: { n: ans, p: 0 } }];
     },
     /* ① 부호를 빠뜨림 ② 생략된 1 을 못 봄 ③ 다른 항을 읽음 ④ 상수항을 항으로 세지 않음 ⑤ 차수 대신 계수나 항의 개수를 답함 */

@@ -13,8 +13,8 @@
   }
   var product = function (v) { return v.a * v.q; };
   function five(d, p) {                                   /* 힌트: d × 5 와 견주어 범위를 좁힌다 */
-    return p > d * 5 ? d + ' × 5 = ' + d * 5 + ' 예요. ' + josa(p, '은/는') + ' 그보다 크니까 답은 5보다 커요.'
-      : p < d * 5 ? d + ' × 5 = ' + d * 5 + ' 예요. ' + josa(p, '은/는') + ' 그보다 작으니까 답은 5보다 작아요.'
+    return p > d * 5 ? d + ' × 5 = ' + josa(d * 5, '이에요/예요') + '. ' + josa(p, '은/는') + ' 그보다 크니까 답은 5보다 커요.'
+      : p < d * 5 ? d + ' × 5 = ' + josa(d * 5, '이에요/예요') + '. ' + josa(p, '은/는') + ' 그보다 작으니까 답은 5보다 작아요.'
         : d + '단을 처음부터 차례로 외워 보세요.';
   }
 
@@ -112,12 +112,12 @@
     hints: function (v) {
       var g = REL[v.form].given(v);
       if (v.form === 1) return [
-        '□ ÷ ' + v.a + ' = ' + v.q + ' 는 "□를 ' + v.a + '씩 묶으면 ' + v.q + '묶음"이라는 뜻이에요.',
-        '나눗셈을 거꾸로 하면 곱셈이에요. □는 ' + v.a + ' × ' + v.q + ' 로 구해요.',
+        '□ ÷ ' + v.a + ' = ' + josa(v.q, '은/는') + ' "□를 ' + v.a + '씩 묶으면 ' + v.q + '묶음"이라는 뜻이에요.',
+        '나눗셈을 거꾸로 하면 곱셈이에요. □는 ' + v.a + ' × ' + josa(v.q, '으로/로') + ' 구해요.',
         v.a + '씩 ' + v.q + '번 뛰어 세어 보세요.'
       ];
       if (v.form === 0) return [
-        v.p + ' ÷ □ = ' + v.q + ' 는 "□ × ' + v.q + ' = ' + v.p + '"와 같은 말이에요.',
+        v.p + ' ÷ □ = ' + josa(v.q, '은/는') + ' "□ × ' + v.q + ' = ' + v.p + '"와 같은 말이에요.',
         g + '단을 외우면서 ' + josa(v.p, '이/가') + ' 나오는 곳을 찾아보세요.',
         five(g, v.p)
       ];
@@ -140,7 +140,7 @@
       }
       c = count(v.p, g);
       return [
-        { say: v.form === 0 ? v.p + ' ÷ □ = ' + v.q + ' 는 "□ × ' + v.q + ' = ' + v.p + '"와 같은 말이에요.' : '곱셈식과 나눗셈식에는 같은 세 수가 나와요. ' + josa(v.p, '을/를') + ' ' + josa(g, '으로/로') + ' 나누면 ' + josa(g, '과/와') + ' 짝이 된 수가 나와요.', tex: f.tex(v, '\\square') },
+        { say: v.form === 0 ? v.p + ' ÷ □ = ' + josa(v.q, '은/는') + ' "□ × ' + v.q + ' = ' + v.p + '"와 같은 말이에요.' : '곱셈식과 나눗셈식에는 같은 세 수가 나와요. ' + josa(v.p, '을/를') + ' ' + josa(g, '으로/로') + ' 나누면 ' + josa(g, '과/와') + ' 짝이 된 수가 나와요.', tex: f.tex(v, '\\square') },
         { say: g + '씩 뛰어 세요: ' + c.seq.join(', ') + '.' },
         { say: c.k + '번째에 ' + josa(v.p, '이/가') + ' 나왔으니 □ = ' + c.k + '. 식에 넣어 확인해요.', tex: f.tex(v, '\\boxed{' + c.k + '}'), value: c.k }
       ];
@@ -152,13 +152,13 @@
       { id: 'subtracted', wrong: function (v) { return v.form === 0 ? v.p - v.q : null; },
         explain: function (v) { return v.p + '에서 ' + josa(v.q, '을/를') + ' 뺐어요. 뺄셈식이 아니라 나눗셈식이에요. ' + v.q + '에 몇을 곱하면 ' + josa(v.p, '이/가') + ' 되는지 찾아요.'; } },
       { id: 'divided', wrong: function (v) { return v.form !== 1 ? null : v.a % v.q === 0 ? v.a / v.q : v.q % v.a === 0 ? v.q / v.a : null; },
-        explain: function (v) { return '식에 보이는 두 수를 나눴어요. □는 나누어지는 수라서 두 수보다 커요. ' + v.a + ' × ' + v.q + ' 로 구해요.'; } },
+        explain: function (v) { return '식에 보이는 두 수를 나눴어요. □는 나누어지는 수라서 두 수보다 커요. ' + v.a + ' × ' + josa(v.q, '으로/로') + ' 구해요.'; } },
       { id: 'added', wrong: function (v) { return v.form === 1 ? v.a + v.q : null; },
-        explain: function (v) { return '식에 보이는 두 수를 더했어요. 나눗셈을 거꾸로 하면 덧셈이 아니라 곱셈이에요. ' + v.a + ' × ' + v.q + ' 로 구해요.'; } },
+        explain: function (v) { return '식에 보이는 두 수를 더했어요. 나눗셈을 거꾸로 하면 덧셈이 아니라 곱셈이에요. ' + v.a + ' × ' + josa(v.q, '으로/로') + ' 구해요.'; } },
       { id: 'one-less', wrong: function (v) { return v.form === 1 ? v.a * (v.q - 1) : REL[v.form].ans(v) - 1; },
-        explain: function (v) { return v.form === 1 ? v.a + ' × ' + (v.q - 1) + ' = ' + v.a * (v.q - 1) + ' 이에요. ' + v.a + '씩 한 번 덜 뛰어 셌어요. ' + v.q + '번을 세어야 해요.' : nearby(v, REL[v.form].ans(v) - 1); } },
+        explain: function (v) { return v.form === 1 ? v.a + ' × ' + (v.q - 1) + ' = ' + josa(v.a * (v.q - 1), '이에요/예요') + '. ' + v.a + '씩 한 번 덜 뛰어 셌어요. ' + v.q + '번을 세어야 해요.' : nearby(v, REL[v.form].ans(v) - 1); } },
       { id: 'one-more', wrong: function (v) { return v.form === 1 ? v.a * (v.q + 1) : REL[v.form].ans(v) + 1; },
-        explain: function (v) { return v.form === 1 ? v.a + ' × ' + (v.q + 1) + ' = ' + v.a * (v.q + 1) + ' 이에요. ' + v.a + '씩 한 번 더 뛰어 셌어요. ' + v.q + '번만 세어야 해요.' : nearby(v, REL[v.form].ans(v) + 1); } },
+        explain: function (v) { return v.form === 1 ? v.a + ' × ' + (v.q + 1) + ' = ' + josa(v.a * (v.q + 1), '이에요/예요') + '. ' + v.a + '씩 한 번 더 뛰어 셌어요. ' + v.q + '번만 세어야 해요.' : nearby(v, REL[v.form].ans(v) + 1); } },
       { id: 'copied', match: function (v, raw) { var n = MH.kinds.int.parse(raw); return n === v.p || n === v.a || n === v.q; },
         explain: function (v) {
           return v.form >= 2 ? '식에 있는 다른 수를 썼어요. ' + josa(v.p, '을/를') + ' ' + josa(REL[v.form].given(v), '으로/로') + ' 나누면, 곱셈식에서 그 수와 짝이 된 나머지 수가 나와요.'
@@ -191,7 +191,7 @@
     hints: function (v, ctx) {
       return [
         ctx.kind === 'share' ? '전체를 똑같이 나누는 상황이에요. 나눗셈을 써요.' : '전체를 같은 수씩 묶는 상황이에요. 묶음이 몇 개인지는 나눗셈으로 구해요.',
-        '식으로 쓰면 ' + v.p + ' ÷ ' + v.a + ' 예요.',
+        '식으로 쓰면 ' + v.p + ' ÷ ' + josa(v.a, '이에요/예요') + '.',
         v.a + '단을 외우면서 ' + josa(v.p, '이/가') + ' 나오는 곳을 찾아보세요.'
       ];
     },
@@ -202,7 +202,7 @@
     },
     mistakes: [
       { id: 'multiplied', wrong: MULTIPLIED.wrong,
-        explain: function (v, ctx) { return '두 수를 곱했어요. ' + (ctx.kind === 'share' ? '똑같이 나누는' : '같은 수씩 묶는') + ' 상황이니까 ' + v.p + ' ÷ ' + v.a + ' 로 계산해요. 답은 ' + v.p + '보다 작아야 해요.'; } },
+        explain: function (v, ctx) { return '두 수를 곱했어요. ' + (ctx.kind === 'share' ? '똑같이 나누는' : '같은 수씩 묶는') + ' 상황이니까 ' + v.p + ' ÷ ' + josa(v.a, '으로/로') + ' 계산해요. 답은 ' + v.p + '보다 작아야 해요.'; } },
       SUBTRACTED, ONE_LESS, ONE_MORE, COPIED
     ]
   });

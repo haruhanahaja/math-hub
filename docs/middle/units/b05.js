@@ -128,10 +128,10 @@
     },
     hints: function (p) {
       var who = p.uniq.map(function (l) { return '$' + l + '$'; }).join(', '), tips = [];
-      if (p.dec) tips.push('곱하는 수 $' + p.dec + '$은 1이 아니라 소수예요. 소수는 모양을 바꾸지 않고 통째로 문자 앞에 써요.');
+      if (p.dec) tips.push('곱하는 수 $' + p.dec + '$' + josa(String(p.dec), '은/는').slice(String(p.dec).length) + ' 1이 아니라 소수예요. 소수는 모양을 바꾸지 않고 통째로 문자 앞에 써요.');
       else if (p.n !== null && abs(p.n) === 1) tips.push('곱하는 수가 ' + (p.n < 0 ? '−1' : '1') + '이에요. 1을 곱해도 값이 그대로라서 1은 쓰지 않아요.' + (p.n < 0 ? ' −1이면 부호 −만 남겨요.' : ''));
-      else if (p.n !== null && p.n < 0) tips.push('곱하는 수 $' + p.n + '$은 음수예요. 괄호를 벗기고, 부호 −와 함께 맨 앞에 써요.');
-      else if (p.n !== null) tips.push('곱하는 수 $' + p.n + '$을 맨 앞에 써요.');
+      else if (p.n !== null && p.n < 0) tips.push('곱하는 수 $' + p.n + '$' + josa(abs(p.n), '은/는').slice(String(abs(p.n)).length) + ' 음수예요. 괄호를 벗기고, 부호 −와 함께 맨 앞에 써요.');
+      else if (p.n !== null) tips.push('곱하는 수 $' + p.n + '$' + josa(abs(p.n), '을/를').slice(String(abs(p.n)).length) + ' 맨 앞에 써요.');
       if (p.rep) tips.push('같은 문자가 여러 번 곱해져 있어요. 몇 번 곱했는지 세어서 지수로 써요.');
       if (p.grp) tips.push('괄호로 묶은 $' + p.grp + '$는 한 덩어리 문자처럼 생각해요. 괄호는 그대로 두고 수를 그 앞에 써요.');
       if (p.uniq.length > 1) tips.push('문자가 여러 개이면 알파벳 순서로 써요.');

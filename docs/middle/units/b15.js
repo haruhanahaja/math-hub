@@ -30,7 +30,8 @@
   var fr = function (r) { return (r.n < 0 ? '-' : '') + (r.d === 1 ? String(abs(r.n)) : '\\dfrac{' + abs(r.n) + '}{' + r.d + '}'); };
   var frp = function (r) { return r.n < 0 ? '(' + fr(r) + ')' : fr(r); };
   /** 분수 뒤의 조사: 분수는 '분자'(자 → 받침 없음)로 끝나게 읽는다. 정수는 그 수로 읽는다 */
-  var rj = function (r, pair) { return r.d === 1 ? pj(r.n, pair) : pair.split('/')[1]; };
+  /* 분수는 '3분의 2' 로 읽으니 조사는 분자를 따른다 */
+  var rj = function (r, pair) { return pj(r.n, pair); };
   var xTerm = function (m) { return m.d === 1 ? (m.n === 1 ? 'x' : m.n === -1 ? '-x' : m.n + 'x') : (m.n < 0 ? '-' : '') + '\\dfrac{' + abs(m.n) + '}{' + m.d + '}x'; };
   var tail = function (k) { return k.n === 0 ? '' : (k.n < 0 ? ' - ' : ' + ') + fr({ n: abs(k.n), d: k.d }); };
   var rhs = function (m, k) { return xTerm(m) + tail(k); };

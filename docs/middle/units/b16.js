@@ -23,7 +23,8 @@
   var neg = function (a) { return { n: -a.n, d: a.d }; };
   var same = function (a, b) { return !!a && !!b && a.n === b.n && a.d === b.d; };
   var fr = function (r) { return (r.n < 0 ? '-' : '') + (r.d === 1 ? String(abs(r.n)) : '\\dfrac{' + abs(r.n) + '}{' + r.d + '}'); };
-  var rj = function (r, pair) { return r.d === 1 ? pj(r.n, pair) : pair.split('/')[1]; };
+  /* 분수는 '3분의 2' 로 읽으니 조사는 분자를 따른다 */
+  var rj = function (r, pair) { return pj(r.n, pair); };
   var xTerm = function (m) { return m.d === 1 ? (m.n === 1 ? 'x' : m.n === -1 ? '-x' : m.n + 'x') : (m.n < 0 ? '-' : '') + '\\dfrac{' + abs(m.n) + '}{' + m.d + '}x'; };
   var tail = function (k) { return k.n === 0 ? '' : (k.n < 0 ? ' - ' : ' + ') + fr({ n: abs(k.n), d: k.d }); };
   var line = function (m, k) { return 'y = ' + (m.n === 0 ? fr(k) : xTerm(m) + tail(k)); };

@@ -432,7 +432,8 @@
     var t = String(o).replace(/\\[a-z]+|[{}^ ]/g, '');
     if (/\\frac/.test(o) && /[a-z]/.test(t)) return true;
     if (/\\dfrac/.test(o) && /\\sqrt/.test(o)) return true;                  /* 근호가 든 분수(B18)는 키가 커서 네 칸에 넣으면 잘린다 */                    /* 문자가 든 분수는 크게 그리므로 자리가 넉넉해야 한다 */
-    return !/[가-힣]/.test(t) && t.length + (t.slice(1).match(/[+\-]/g) || []).length >= 6;
+    /* 근호(√)도 한 글자만큼 자리를 차지한다: '-10√78' 을 네 칸에 넣으면 휴대폰에서 화면 밖으로 밀린다 */
+    return !/[가-힣]/.test(t) && t.length + (t.slice(1).match(/[+\-]/g) || []).length + (String(o).match(/\\sqrt/g) || []).length >= 6;
   }
   /** 보기가 등식(5x - 2x = 9 - 3)이면 두 칸에 들어가지 않아 줄이 바뀐다: 단추를 한 줄에 하나씩 놓는다 */
   /** 등식이 든 보기와 긴 한글 문장 보기(B15 의 '자연수 x의 약수 y' …)는 한 줄에 하나씩 놓는다 */

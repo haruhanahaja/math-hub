@@ -3,7 +3,9 @@
 (function () {
   'use strict';
   var MH = globalThis.MH = globalThis.MH || {};
-  var MAX_TRIES = 200;                                   /* 조건에 맞는 숫자를 못 찾으면 오류(조건이 너무 빡빡함) */
+  /* 조건에 맞는 숫자를 못 찾으면 오류. 앱에서는 씨앗이 무작위라서, 넉넉하게 잡아 실제로는 오류가 나지 않게 한다.
+     조건이 너무 빡빡한 단계는 테스트가 평균 시도 횟수(MH.lastTries)로 잡아낸다(tests/types.test.js) */
+  var MAX_TRIES = 5000;
   var NEED = ['id', 'unit', 'version', 'title', 'answer', 'levels', 'prompt', 'solve', 'verify', 'hints', 'steps', 'mistakes'];
 
   MH.types = MH.types || {};
@@ -55,6 +57,7 @@
         v[names[i]] = spec instanceof MH.Sampler ? spec.sample(r) : spec;
       }
       if (!lv.where || lv.where(v, ctx)) {
+        MH.lastTries = t + 1;
         return { type: typeId, version: def.version, level: level, seed: seed, v: v, ctx: ctx, answer: def.solve(v, ctx) };
       }
     }

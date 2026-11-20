@@ -4,7 +4,7 @@
    식은 낱말 목록(tokens)으로 다룬다: [20, '−', 3, '×', 4], ['(', 3, '+', 4, ')', '×', 5]. 연산 기호는 화면에 보이는 글자(+ − × ÷) 그대로다. */
 (function () {
   'use strict';
-  var MH = globalThis.MH, int = MH.int, pick = MH.pick;
+  var MH = globalThis.MH, int = MH.int, pick = MH.pick, josa = MH.josa;
 
   var isNum = function (t) { return typeof t === 'number'; };
   var isHigh = function (op) { return op === '×' || op === '÷'; };
@@ -73,7 +73,7 @@
   }
   function hints(tokens) {
     var first = run(tokens, 'std').trace[0];
-    return [rule(tokens), '먼저 계산할 곳은 ' + calc(first) + ' 예요.', '그 결과를 □라고 하면 남은 식은 ' + first.box + ' 예요.'];
+    return [rule(tokens), '먼저 계산할 곳은 ' + josa(calc(first), '이에요/예요') + '.', '그 결과를 □라고 하면 남은 식은 ' + josa(first.box, '이에요/예요') + '.'];
   }
 
   /* ── 흔한 실수 (식을 받아 다른 순서로 계산해 본다) ────
@@ -83,15 +83,15 @@
     var lastOf = function (v, ctx) { var tr = run(of(v, ctx), 'std').trace; return tr[tr.length - 1]; };
     var all = {
       'left-to-right': { wrong: function (v, ctx) { return valueOf(of(v, ctx), 'ltr'); },
-        explain: function (v, ctx) { return '순서를 따지지 않고 앞에서부터 계산했어요. ' + (first(v, ctx).reason === 'paren' ? '괄호 안을 가장 먼저, 그다음 ×, ÷ 를 +, − 보다 먼저 계산해요.' : '×, ÷ 는 +, − 보다 먼저 계산해요.') + ' 먼저 계산할 곳은 ' + calc(first(v, ctx)) + ' 예요.'; } },
+        explain: function (v, ctx) { return '순서를 따지지 않고 앞에서부터 계산했어요. ' + (first(v, ctx).reason === 'paren' ? '괄호 안을 가장 먼저, 그다음 ×, ÷ 를 +, − 보다 먼저 계산해요.' : '×, ÷ 는 +, − 보다 먼저 계산해요.') + ' 먼저 계산할 곳은 ' + josa(calc(first(v, ctx)), '이에요/예요') + '.'; } },
       'ignored-paren': { wrong: function (v, ctx) { return valueOf(of(v, ctx), 'noparen'); },
-        explain: function (v, ctx) { return '괄호가 없는 것처럼 계산했어요. 괄호가 있으면 괄호 안을 가장 먼저 계산해요. 먼저 계산할 곳은 ' + calc(first(v, ctx)) + ' 예요.'; } },
+        explain: function (v, ctx) { return '괄호가 없는 것처럼 계산했어요. 괄호가 있으면 괄호 안을 가장 먼저 계산해요. 먼저 계산할 곳은 ' + josa(calc(first(v, ctx)), '이에요/예요') + '.'; } },
       'right-first': { wrong: function (v, ctx) { return valueOf(of(v, ctx), 'rtl'); },
-        explain: function (v, ctx) { return '뒤쪽을 먼저 계산했어요. +, − 끼리 또는 ×, ÷ 끼리만 있는 식은 앞에서부터 차례로 계산해요. 먼저 계산할 곳은 ' + calc(first(v, ctx)) + ' 예요.'; } },
+        explain: function (v, ctx) { return '뒤쪽을 먼저 계산했어요. +, − 끼리 또는 ×, ÷ 끼리만 있는 식은 앞에서부터 차례로 계산해요. 먼저 계산할 곳은 ' + josa(calc(first(v, ctx)), '이에요/예요') + '.'; } },
       'stopped': { wrong: function (v, ctx) { return first(v, ctx).res; },
         explain: function (v, ctx) { var s = first(v, ctx); return calc(s) + ' = ' + s.res + ' 까지만 계산했어요. 아직 계산이 남았어요: ' + s.after + '.'; } },
       'plus-minus': { wrong: function (v, ctx) { var s = lastOf(v, ctx); return isHigh(s.op) ? null : apply(s.l, s.op === '+' ? '−' : '+', s.r); },
-        explain: function (v, ctx) { var s = lastOf(v, ctx); return '마지막 계산에서 + 와 − 를 바꿔 계산했어요. 마지막 계산은 ' + calc(s) + ' 예요.'; } }
+        explain: function (v, ctx) { var s = lastOf(v, ctx); return '마지막 계산에서 + 와 − 를 바꿔 계산했어요. 마지막 계산은 ' + josa(calc(s), '이에요/예요') + '.'; } }
     };
     return ids.map(function (id) { return { id: id, wrong: all[id].wrong, explain: all[id].explain }; });
   }
@@ -189,7 +189,7 @@
     prompt: function (v, ctx) { return { text: ctx.text(v) }; },
     solve: function (v, ctx) { return run(ctx.expr(v), 'std').value; },
     verify: function (v, ans, ctx) { return parse(ctx.expr(v)) === ans; },
-    hints: function (v, ctx) { return [ctx.hint, '하나의 식으로 쓰면 ' + show(ctx.expr(v)) + ' 예요.', '먼저 계산할 곳은 ' + calc(run(ctx.expr(v), 'std').trace[0]) + ' 예요.']; },
+    hints: function (v, ctx) { return [ctx.hint, '하나의 식으로 쓰면 ' + josa(show(ctx.expr(v)), '이에요/예요') + '.', '먼저 계산할 곳은 ' + josa(calc(run(ctx.expr(v), 'std').trace[0]), '이에요/예요') + '.']; },
     steps: function (v, ctx) {
       var t = ctx.expr(v), inner = steps(t), last = inner[inner.length - 1];
       return [{ say: ctx.hint + ' 하나의 식으로 써요.', tex: toTex(t) }].concat(inner.slice(0, -1),

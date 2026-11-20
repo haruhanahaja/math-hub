@@ -20,6 +20,7 @@ function done(label) { print('  ✓ ' + label); }
 globalThis.T = T; globalThis.group = group; globalThis.ok = ok; globalThis.eq = eq; globalThis.done = done;
 
 load('tests/types.test.js');
+load('tests/josa.test.js');
 load('tests/map.test.js');
 load('tests/concepts.test.js');
 load('tests/answer.test.js');

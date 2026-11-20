@@ -36,11 +36,12 @@
   /** 자리 이름: 0 → 일, 1 → 십, 2 → 백 … */
   MH.place = function (i) { return ['일', '십', '백', '천', '만'][i]; };
 
-  /* 한국어 조사. josa(347, '을/를') → '347을', josa('사과', '을/를') → '사과를'
+  /* 한국어 조사. josa(347, '을/를') → '347을', josa('사과', '을/를') → '사과를', josa('(5 − 3)', '이에요/예요') → '(5 − 3)이에요'
      숫자는 읽었을 때 마지막 소리의 받침으로 정한다(0 → 십·백·천…, 1 → 일, 3 → 삼 …). */
   var DIGIT_FINAL = { 0: 'ㅂ', 1: 'ㄹ', 2: '', 3: 'ㅁ', 4: '', 5: '', 6: 'ㄱ', 7: 'ㄹ', 8: 'ㄹ', 9: '' };
   function finalOf(word) {
-    var s = String(word), c = s.charCodeAt(s.length - 1);
+    /* 식 '(5 − 3)' · '$x + 3$' 처럼 닫는 괄호나 $ 로 끝나면, 그 앞의 마지막 글자를 읽은 소리를 따른다 */
+    var s = String(word).replace(/[)\]}$ ]+$/, ''), c = s.charCodeAt(s.length - 1);
     if (c >= 0x30 && c <= 0x39) {
       if (c !== 0x30) return DIGIT_FINAL[c - 0x30];
       var zeros = s.length - s.replace(/0+$/, '').length;          /* 끝의 0 개수: 십(ㅂ) 백(ㄱ) 천 · 만(ㄴ) */

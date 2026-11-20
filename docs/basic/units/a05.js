@@ -207,7 +207,7 @@
     verify: function (v, ans, ctx) { var L = longDiv(v.p, v.a); return L.r >= 1 && ans === wordAnswer(ctx.kind, L.q, L.r); },
     hints: function (v, ctx) {
       return [
-        '식으로 쓰면 ' + v.p + ' ÷ ' + v.a + ' 예요. 몫과 나머지를 먼저 구해요.',
+        '식으로 쓰면 ' + v.p + ' ÷ ' + josa(v.a, '이에요/예요') + '. 몫과 나머지를 먼저 구해요.',
         '몫은 ' + v.a + '씩 묶은 묶음의 수이고, 나머지는 묶지 못하고 남은 수예요.',
         ctx.kind === 'left' ? '묻는 것은 남는 수예요. 몫과 나머지 가운데 어느 쪽인지 생각해 보세요.'
           : ctx.kind === 'full' ? '남은 것으로는 한 묶음을 다 채울 수 없어요. 다 채운 묶음만 세요.'
