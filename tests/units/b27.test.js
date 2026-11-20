@@ -146,14 +146,14 @@
     var a = numChecks('B27.arrange', p, pr, where, bag), t = pr.text, v = N_(t), ds = digitsIn(t), m, want, k;
     if (ds) { k = ds[0] === 0 ? 'num0' : 'num'; m = /장 중에서 (\d+)장을 뽑아 만들 수 있는 (두|세) 자리 자연수의 개수를 구하세요\.$/.exec(t); ok(!!m && Number(m[1]) === (m[2] === '두' ? 2 : 3) && ds.every(function (x, i) { return i === 0 || ds[i - 1] < x; }), where + '문제 글: ' + t); want = numbersFrom(ds, Number(m[1]), any); }
     else if (/한 줄로 (세우는|꽂는|거는)|달리는 차례를 정하는/.test(t)) { k = v.length === 1 ? 'all' : 'pick'; ok(v.length === 1 || (v.length === 2 && v[1] < v[0]), where + '수: ' + t); want = lineups(v[0], v[1] || v[0], any); }
-    else if (/회장 1명과 부회장 1명을 뽑는/.test(t)) { k = 'roles2'; want = lineups(v[0], 2, any); }
-    else if (/회장 1명, 부회장 1명, 총무 1명을 뽑는/.test(t)) { k = 'roles3'; want = lineups(v[0], 3, any); }
-    else if ((m = /(\d+)명의 후보 중에서 대표 (\d)명을 뽑는/.exec(t))) { k = 'same' + m[2]; want = groups(Number(m[1]), Number(m[2]), any); }
+    else if (/회장 1명과 부회장 1명을 뽑는|금상 1명과 은상 1명을 뽑는/.test(t)) { k = 'roles2'; eq(v.length, 3, where + '수: ' + t); want = lineups(v[0], 2, any); }
+    else if ((m = /^(\d+)명의 (?:후보|학생) 중에서 (?:대표|청소 당번) 2명을 뽑는/.exec(t))) { k = 'same2'; want = groups(Number(m[1]), 2, any); }
     else { k = 'pairs'; ok(/한 번씩 경기를|한 번씩 악수를|두 점을 이어 만들 수 있는 선분/.test(t) && v.length === 1, where + '모르는 문제: ' + t); want = groups(v[0], 2, any); }
     kinds[level + k] = 1; eq(a, want, where + '경우의 수 ' + t);
+    ok((k === 'all' ? v[0] <= 5 : a <= 42) && v[0] <= 7, where + '쉬운 크기(모두 세우기는 5까지, 나머지는 답 42 이하): ' + t);      /* 순열 · 조합이 필요한 복잡한 경우는 내지 않는다 */
   });
-  eq(Object.keys(kinds).sort().join(' '), '0all 0pick 1num 1num0 2pairs 2roles2 2roles3 2same2 2same3', '문제의 종류');
-  eq(Object.keys(bag).sort().join(' '), 'added divided-by-k n-times-k not-ordered ordered power zero-first', '실수의 종류');
+  eq(Object.keys(kinds).sort().join(' '), '0all 0pick 1num 1num0 2pairs 2roles2 2same2', '문제의 종류');
+  eq(Object.keys(bag).sort().join(' '), 'added n-times-k not-ordered ordered power zero-first', '실수의 종류');
   done('줄 세우기 · 뽑기');
 
   /** 대표 2명: '남학생 a명과 여학생 b명' 에서 f(남학생 수, 여학생 수) 가 참인 것 / 전체 */

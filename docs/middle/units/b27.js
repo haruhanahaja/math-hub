@@ -368,18 +368,18 @@
           { say: '자리를 이어서 채우니 모두 곱해요.', tex: (zero ? (n - 1) + (k > 1 ? ' \\times ' + fallTex(n - 1, k - 1) : '') : fallTex(n, k)) + ' = ' + ans }] };
     }
     /* 대표 뽑기: q.kind */
-    R = { roles2: [2, false, n + '명의 후보 중에서 회장 1명과 부회장 1명을 뽑는 경우의 수를 구하세요.'], same2: [2, true, n + '명의 후보 중에서 대표 2명을 뽑는 경우의 수를 구하세요.'],
-      roles3: [3, false, n + '명의 후보 중에서 회장 1명, 부회장 1명, 총무 1명을 뽑는 경우의 수를 구하세요.'], same3: [3, true, n + '명의 후보 중에서 대표 3명을 뽑는 경우의 수를 구하세요.'],
+    R = { roles2: [2, false, n + '명의 후보 중에서 회장 1명과 부회장 1명을 뽑는 경우의 수를 구하세요.', ['회장', '부회장', '맡을']], same2: [2, true, n + '명의 후보 중에서 대표 2명을 뽑는 경우의 수를 구하세요.'],
+      prize: [2, false, n + '명의 참가자 중에서 금상 1명과 은상 1명을 뽑는 경우의 수를 구하세요.', ['금상', '은상', '받을']], duty: [2, true, n + '명의 학생 중에서 청소 당번 2명을 뽑는 경우의 수를 구하세요.'],
       games: [2, true, n + '개의 팀이 다른 모든 팀과 한 번씩 경기를 할 때, 치러야 하는 경기의 수를 구하세요.'], shake: [2, true, n + '명이 서로 한 번씩 악수를 할 때, 악수를 하는 횟수를 구하세요.'],
       segs: [2, true, '원 위에 서로 다른 점이 ' + n + '개 있어요. 이 가운데 두 점을 이어 만들 수 있는 선분의 개수를 구하세요.'] }[q.kind];
     k = R[0]; same = R[1]; ans = same ? comb(n, k) : falling(n, k);
-    wrong['not-ordered'] = same ? null : comb(n, k); wrong.ordered = same ? falling(n, k) : null; wrong['divided-by-k'] = same && k === 3 ? falling(n, k) / k : null;
+    wrong['not-ordered'] = same ? null : comb(n, k); wrong.ordered = same ? falling(n, k) : null;
     wrong.power = same ? null : pow(n, k); wrong.added = addAll(n, k); wrong['n-times-k'] = n * k;
     h2 = '① 먼저 순서를 따져서 세요. 첫 번째로 고르는 경우는 ' + n + '가지, 두 번째는 ' + (n - 1) + '가지' + (k === 3 ? ', 세 번째는 ' + (n - 2) + '가지' : '') + '예요. 이어서 고르니 곱해요. ② ' +
       (same ? '그런데 이 문제에서 고른 ' + (k === 2 ? '둘' : '셋') + '은 자리가 서로 같아요. 고른 차례만 다른 것은 같은 경우예요. 같은 ' + (k === 2 ? '둘' : '셋') + '을 고르는 차례는 $' + fallTex(k, k) + '$가지씩 있어요. ③ 같은 경우를 그만큼씩 겹쳐 세었으니, ①의 값을 그 수로 나눠요.'
         : '이 문제는 뽑힌 사람의 자리가 서로 달라요. 누가 어느 자리를 맡는지에 따라 다른 경우예요. ③ 그러니 ①에서 곱한 값을 그대로 써요. 더 나누지 않아요.');
     return { text: R[2], ans: ans, wrong: wrong, check: true,
-      hints: [R_KEY, h2, same ? '사람이나 점에 A, B, C 같은 이름을 붙여 적어 봐요. A와 B를 고른 것과 B와 A를 고른 것이 같은 경우인지 확인해요. 같다면 순서를 따져 센 값을 겹친 횟수로 나눠요.' : '후보에 A, B, C 같은 이름을 붙여 적어 봐요. A가 회장이고 B가 부회장인 것과, B가 회장이고 A가 부회장인 것은 다른 경우예요. 자리를 하나씩 채우며 가짓수를 곱해요.'],
+      hints: [R_KEY, h2, same ? '수가 적으니 하나씩 적어서 세어도 돼요. A, B, C 같은 이름을 붙여요. A와 짝이 되는 것은 ' + (n - 1) + '가지예요. B와 새로 짝이 되는 것은 A를 뺀 ' + (n - 2) + '가지예요. 이렇게 1씩 줄여 가며 1가지가 될 때까지 적고, 적은 수를 모두 더해요. ②에서 나눠서 구한 값과 같아요.' : '수가 적으니 하나씩 적어서 세어도 돼요. A, B, C 같은 이름을 붙여요. A가 ' + R[3][0] + '이고 B가 ' + R[3][1] + '인 것과, B가 ' + R[3][0] + '이고 A가 ' + R[3][1] + '인 것은 다른 경우예요. ' + R[3][0] + '을 ' + R[3][2] + ' 사람 한 명마다 ' + R[3][1] + '을 ' + R[3][2] + ' 수 있는 사람이 몇 명인지 세어요.'],
       steps: same ? [{ say: '순서를 따져서 고르는 경우의 수를 먼저 구해요.', tex: fallTex(n, k) + ' = ' + falling(n, k) }, { say: '고른 차례만 다른 것은 같은 경우예요. 같은 것을 ' + fact(k) + '번씩 세었으니 ' + fact(k) + pj(fact(k), '으로/로') + ' 나눠요.', tex: falling(n, k) + ' \\div ' + fact(k) + ' = ' + ans }]
         : [{ say: '자리마다 올 수 있는 사람의 수를 차례로 적어요.', tex: range(k).map(function (i) { return n - i + 1; }).join(',\\ ') }, { say: '자리가 서로 다르니 그대로 곱해요.', tex: fallTex(n, k) + ' = ' + ans }] };
   };
@@ -389,20 +389,19 @@
     mistakes: [['zero-first', '0이 맨 앞에 오는 것까지 세었어요. 0이 맨 앞에 오면 자릿수가 하나 줄어요. 맨 앞자리에는 0을 뺀 카드만 올 수 있어요.'],
       ['not-ordered', '순서를 구분하지 않고 세었어요. 줄을 세우거나 자리가 다르면, 같은 것을 골라도 차례가 다르면 다른 경우예요.'],
       ['ordered', '자리가 같은데 순서를 구분해서 세었어요. A, B를 뽑은 것과 B, A를 뽑은 것은 같은 경우예요. 겹쳐 센 횟수로 나눠요.'],
-      ['divided-by-k', '겹쳐 센 횟수를 잘못 구했어요. 같은 3개를 고르는 차례는 $3 \\times 2 \\times 1$가지예요. 그 수로 나눠야 해요.'],
       ['power', '같은 것을 다시 쓸 수 있는 것처럼 세었어요. 한 번 쓴 것은 다시 쓸 수 없으니 자리마다 가짓수가 1씩 줄어요.'],
       ['added', '자리마다의 가짓수를 더했어요. 자리를 이어서 채우는 것이니 가짓수를 곱해야 해요.'],
       ['n-times-k', '전체 개수와 고르는 개수를 곱했어요. 자리마다 올 수 있는 가짓수를 차례로 적고, 그 수들을 곱해야 해요.']],
     levels: [
-      { name: '한 줄로 세우기', minDistinct: 28, vars: { q: sampler(function (r) {
-        var k;
-        if (r.int(0, 2) === 0) return { t: 'all', ctx: r.int(0, 3), n: r.int(3, 6) };
-        k = r.int(2, 3); return { t: 'pick', ctx: r.int(0, 2), k: k, n: k === 2 ? r.int(4, 8) : r.int(4, 6) };
+      /* 교육과정: 순열 · 조합을 써야 쉬운 복잡한 경우의 수는 다루지 않는다. 직접 적어서 셀 수 있는 크기만 낸다(2개 고르기, 답 42 이하. 모두 세우기는 5명까지) */
+      { name: '한 줄로 세우기', minDistinct: 22, vars: { q: sampler(function (r) {
+        if (r.int(0, 2) === 0) return { t: 'all', ctx: r.int(0, 3), n: r.int(3, 5) };
+        return { t: 'pick', ctx: r.int(0, 2), k: 2, n: r.int(4, 7) };
       }) } },
-      { name: '카드로 수 만들기', minDistinct: 200, vars: { q: sampler(function (r) { var n = r.int(3, 6); return { t: 'num', ds: digitsOf(r, n, r.int(0, 1) === 1), k: n === 3 ? 2 : r.int(2, 3) }; }) } },
-      { name: '대표 뽑기', minDistinct: 30, vars: { q: sampler(function (r) {
-        var kind = r.pick(['roles2', 'same2', 'roles3', 'same3', 'games', 'shake', 'segs']), three = /3/.test(kind);
-        return { t: 'rep', kind: kind, n: three ? r.int(4, 7) : r.int(kind === 'roles2' || kind === 'same2' ? 3 : 4, 9) };
+      { name: '카드로 수 만들기', minDistinct: 200, vars: { q: sampler(function (r) { var n = r.int(3, 5); return { t: 'num', ds: digitsOf(r, n, r.int(0, 1) === 1), k: n === 5 ? 2 : r.int(2, 3) }; }) } },
+      { name: '대표 뽑기', minDistinct: 28, vars: { q: sampler(function (r) {
+        var kind = r.pick(['roles2', 'same2', 'prize', 'duty', 'games', 'shake', 'segs']);
+        return { t: 'rep', kind: kind, n: r.int(/games|shake|segs/.test(kind) ? 4 : 3, 7) };
       }) } }
     ]
   });
@@ -500,8 +499,8 @@
       { name: '수 만들기 · 대표 뽑기', minDistinct: 150, vars: { q: sampler(function (r) {
         var k = r.int(0, 9), ds, ev;
         if (k < 6) { ds = digitsOf(r, r.int(3, 5), false); ev = r.pick(['even', 'odd', 'gt']); return { t: 'num2', ds: ds, ev: ev, x: ev === 'gt' ? ds[r.int(1, ds.length - 1)] : 0 }; }
-        if (k < 7) return { t: 'rep1', n: r.int(5, 9) };
-        return { t: 'rep2', a: r.int(1, 5), b: r.int(2, 5), who: r.int(0, 1) };
+        if (k < 7) return { t: 'rep1', n: r.int(4, 7) };
+        return { t: 'rep2', a: r.int(1, 4), b: r.int(2, 4), who: r.int(0, 1) };
       }) } }
     ]
   });
@@ -670,7 +669,7 @@
         var k = r.int(0, 9), ox;
         if (k < 3) { ox = r.int(0, 1) === 1; return { t: 'atl-coin', ox: ox, m: r.int(2, ox ? 5 : 4), face: r.pick(['앞', '뒤']) }; }
         if (k < 6) return { t: 'atl-dice', c: condOf(r, 6, ['even', 'odd', 'mult', 'div', 'ge', 'le', 'gt', 'lt', 'prime']) };
-        return { t: 'atl-rep', a: r.int(2, 5), b: r.int(1, 5), who: r.int(0, 1) };
+        return { t: 'atl-rep', a: r.int(2, 4), b: r.int(1, 4), who: r.int(0, 1) };
       }) } }
     ]
   });
@@ -707,6 +706,7 @@
       '한 줄로 세울 때는 자리를 하나씩 채워요. 앞자리에 한 명을 세우면 뒷자리에 올 수 있는 사람이 한 명 줄어요.',
       { ex: [['3 \\times 2 \\times 1 = 6', '3명을 한 줄로 세우기'], ['4 \\times 3 = 12', '4명 중 회장 1명, 부회장 1명 뽑기'], ['4 \\times 3 \\div 2 = 6', '4명 중 대표 2명 뽑기']] },
       '회장과 부회장은 자리가 달라요. 누가 어느 자리를 맡는지에 따라 다른 경우예요. 대표 2명은 자리가 같아요. A, B를 뽑은 것과 B, A를 뽑은 것이 같은 경우라서 2로 나눠요.',
+      '수가 적을 때는 A, B, C, D로 이름을 붙여 하나씩 적어 봐도 돼요. 4명 중 대표 2명은 AB, AC, AD, BC, BD, CD로 6가지예요.',
       '카드로 수를 만들 때는 0이 맨 앞자리에 올 수 없다는 것도 따져요.'
     ] },
     { title: '확률의 뜻', body: [
