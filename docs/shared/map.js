@@ -60,7 +60,8 @@
     B24: ['B24.ratio', 'B24.parallel', 'B24.area', 'B24.pyth', 'B24.root', 'B24.right'],
     B25: ['B25.def', 'B25.relation', 'B25.special', 'B25.length', 'B25.apply', 'B25.area'],
     B26: ['B26.chord', 'B26.tangent', 'B26.incircle', 'B26.inscribed', 'B26.arc'],
-    B27: ['B27.count', 'B27.rule', 'B27.arrange', 'B27.prob', 'B27.sense', 'B27.property']
+    B27: ['B27.count', 'B27.rule', 'B27.arrange', 'B27.prob', 'B27.sense', 'B27.property'],
+    B28: ['B28.mean', 'B28.median', 'B28.mode', 'B28.deviation', 'B28.variance', 'B28.spread']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */
