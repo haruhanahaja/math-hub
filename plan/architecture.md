@@ -364,7 +364,8 @@ docs/                          사이트 (GitHub Pages)
     index.html                 틀만 있다. 구간마다 다른 것은 stage 글자뿐이다.
     units/a01.js               단원 하나에 파일 하나 (그 단원의 유형 템플릿들)
   middle/                      B 구간 앱 (같은 구조. units/b01.js, b02.js …)
-  common/ algebra/ calculus/ stats/              C~F 구간 앱 (같은 구조, 아직 없음)
+  common/                      C 구간 앱 (같은 구조. units/c01.js …)
+  algebra/ calculus/ stats/    D~F 구간 앱 (같은 구조, 아직 없음)
 tests/
   run.sh                       모든 테스트 실행: sh tests/run.sh (macOS 내장 jsc 사용)
   run.js                       엔진과 만들어진 단원을 불러와 아래 테스트를 차례로 실행
