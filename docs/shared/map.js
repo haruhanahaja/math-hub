@@ -63,7 +63,8 @@
     B27: ['B27.count', 'B27.rule', 'B27.arrange', 'B27.prob', 'B27.sense', 'B27.property'],
     B28: ['B28.mean', 'B28.median', 'B28.mode', 'B28.deviation', 'B28.variance', 'B28.spread'],
     C01: ['C01.addsub', 'C01.mul', 'C01.trisq', 'C01.cube', 'C01.sumcube', 'C01.value', 'C01.div', 'C01.rem'],
-    C02: ['C02.identity', 'C02.coef', 'C02.subst', 'C02.remainder', 'C02.isfactor', 'C02.factor', 'C02.synth', 'C02.synthq']
+    C02: ['C02.identity', 'C02.coef', 'C02.subst', 'C02.remainder', 'C02.isfactor', 'C02.factor', 'C02.synth', 'C02.synthq'],
+    C03: ['C03.cube', 'C03.sumcube', 'C03.trisq', 'C03.subst', 'C03.biquad', 'C03.theorem', 'C03.blank', 'C03.value']
   };
 
   /* [id, 제목, 주요 내용, 선수 단원, 옵션] — 배열의 순서가 권장 순서다. */
